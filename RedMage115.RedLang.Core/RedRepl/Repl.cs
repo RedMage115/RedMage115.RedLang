@@ -3,7 +3,7 @@ using RedMage115.RedLang.Core.RedToken;
 
 namespace RedMage115.RedLang.Core.RedRepl;
 
-public class Repl {
+public static class Repl {
     private const string Prompt = ">> ";
 
     public static void Start() {
