@@ -40,6 +40,15 @@ public class LexerTests {
                     x + y;
                     };
                     let result = add(five, ten);
+                    !-/*5;
+                    5 < 10 > 5;
+                    if (5 < 10) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                    10 == 10;
+                    10 != 9;
                     """;
         var expectedTokens = new List<Token>() {
             new(TokenType.LET, "let"),
@@ -77,6 +86,43 @@ public class LexerTests {
             new(TokenType.COMMA, ","),
             new(TokenType.IDENT, "ten"),
             new(TokenType.RPAREN, ")"),
+            new(TokenType.SEMICOLON, ";"),
+            new(TokenType.BANG, "!"),
+            new(TokenType.MINUS, "-"),
+            new(TokenType.SLASH, "/"),
+            new(TokenType.ASTRIX, "*"),
+            new(TokenType.INT, "5"),
+            new(TokenType.SEMICOLON, ";"),
+            new(TokenType.INT, "5"),
+            new(TokenType.LT, "<"),
+            new(TokenType.INT, "10"),
+            new(TokenType.GT, ">"),
+            new(TokenType.INT, "5"),
+            new(TokenType.SEMICOLON, ";"),
+            new(TokenType.IF, "if"),
+            new(TokenType.LPAREN, "("),
+            new(TokenType.INT, "5"),
+            new(TokenType.LT, "<"),
+            new(TokenType.INT, "10"),
+            new(TokenType.RPAREN, ")"),
+            new(TokenType.LBRACE, "{"),
+            new(TokenType.RETURN, "return"),
+            new(TokenType.TRUE, "true"),
+            new(TokenType.SEMICOLON, ";"),
+            new(TokenType.RBRACE, "}"),
+            new(TokenType.ELSE, "else"),
+            new(TokenType.LBRACE, "{"),
+            new(TokenType.RETURN, "return"),
+            new(TokenType.FALSE, "false"),
+            new(TokenType.SEMICOLON, ";"),
+            new(TokenType.RBRACE, "}"),
+            new(TokenType.INT, "10"),
+            new(TokenType.EQ, "=="),
+            new(TokenType.INT, "10"),
+            new(TokenType.SEMICOLON, ";"),
+            new(TokenType.INT, "10"),
+            new(TokenType.NOT_EQ, "!="),
+            new(TokenType.INT, "9"),
             new(TokenType.SEMICOLON, ";"),
         };
         var lexer = new Lexer(input);

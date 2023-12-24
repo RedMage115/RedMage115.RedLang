@@ -5,6 +5,11 @@ public partial class Token {
     private static readonly Dictionary<string, TokenType> KeywordsMap = new() {
         {"fn", TokenType.FUNCTION},
         {"let", TokenType.LET},
+        {"true", TokenType.TRUE},
+        {"false", TokenType.FALSE},
+        {"if", TokenType.IF},
+        {"else", TokenType.ELSE},
+        {"return", TokenType.RETURN},
     };
 
 /// <summary>

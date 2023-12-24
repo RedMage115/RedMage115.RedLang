@@ -11,6 +11,14 @@ public partial class Lexer {
         Position = ReadPosition;
         ReadPosition++;
     }
+/// <summary>
+/// Get the next char without advancing the positions
+/// </summary>
+/// <returns>The char in ReadPosition or EOF</returns>
+    private char PeekChar() {
+        return ReadPosition >= Length ? '\0' : Input[ReadPosition];
+    }
+    
     /// <summary>
     /// Gets the next token from the current position
     /// </summary>
@@ -20,7 +28,42 @@ public partial class Lexer {
         SkipWhitespace();
         switch (Ch) {
             case '=':
-                token = new Token(TokenType.ASSIGN, Ch);
+                if (PeekChar() == '=') {
+                    var ch = Ch;
+                    ReadChar();
+                    token = new Token(TokenType.EQ, $"{ch}{Ch}");
+                }
+                else {
+                    token = new Token(TokenType.ASSIGN, Ch);
+                }
+                break;
+            case '+':
+                token = new Token(TokenType.PLUS, Ch);
+                break;
+            case '-':
+                token = new Token(TokenType.MINUS, Ch);
+                break;
+            case '!':
+                if (PeekChar() == '=') {
+                    var ch = Ch;
+                    ReadChar();
+                    token = new Token(TokenType.NOT_EQ, $"{ch}{Ch}");
+                }
+                else {
+                    token = new Token(TokenType.BANG, Ch);
+                }
+                break;
+            case '/':
+                token = new Token(TokenType.SLASH, Ch);
+                break;
+            case '*':
+                token = new Token(TokenType.ASTRIX, Ch);
+                break;
+            case '<':
+                token = new Token(TokenType.LT, Ch);
+                break;
+            case '>':
+                token = new Token(TokenType.GT, Ch);
                 break;
             case ';':
                 token = new Token(TokenType.SEMICOLON, Ch);
@@ -33,9 +76,6 @@ public partial class Lexer {
                 break;
             case ',':
                 token = new Token(TokenType.COMMA, Ch);
-                break;
-            case '+':
-                token = new Token(TokenType.PLUS, Ch);
                 break;
             case '{':
                 token = new Token(TokenType.LBRACE, Ch);
