@@ -18,6 +18,10 @@ public class PrefixExpression : Expression {
     }
 
     public string GetNodeTypeString() {
-        return $"<Prefix Expression [{Operator}{Right.GetTokenLiteral()}]>";
+        return $"<Prefix Expression [{Operator}{Right.GetRawExpression()}]>";
+    }
+
+    public string GetRawExpression() {
+        return $"{Operator}{Right.GetRawExpression()}";
     }
 }

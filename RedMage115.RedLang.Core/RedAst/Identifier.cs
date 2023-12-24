@@ -19,4 +19,8 @@ public class Identifier : Expression {
     public string GetNodeTypeString() {
         return $"<Identifier [{Token.Literal} {Value}]>";
     }
+
+    public string GetRawExpression() {
+        return $"{Value}".Trim();
+    }
 }

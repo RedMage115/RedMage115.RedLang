@@ -19,4 +19,8 @@ public class ReturnStatement : Statement {
     public string GetNodeTypeString() {
         return $"<Return Statement [{Token.Literal} {ReturnValue?.GetTokenLiteral()}] >";
     }
+
+    public string GetRawStatement() {
+        return $"return {ReturnValue?.GetRawExpression()}";
+    }
 }

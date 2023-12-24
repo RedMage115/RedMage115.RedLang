@@ -19,6 +19,10 @@ public class LetStatement : Statement {
     }
     
     public string GetNodeTypeString() {
-        return $"<Let Statement [{Token.Literal} {Name.GetTokenLiteral()} {Value?.GetTokenLiteral()}] >";
+        return $"<Let Statement [{Token.Literal} {Name.GetTokenLiteral()} {Value?.GetNodeTypeString()}] >";
+    }
+    
+    public string GetRawStatement() {
+        return $"let {Name.Value} {Value?.GetRawExpression()}";
     }
 }

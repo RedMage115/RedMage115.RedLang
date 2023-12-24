@@ -17,6 +17,10 @@ public class ExpressionStatement : Statement {
     }
 
     public string GetNodeTypeString() {
-        return $"<Expression Statement [{Expression?.GetNodeTypeString()} ({Expression?.GetTokenLiteral()})]>";
+        return $"<Expression Statement [{Expression?.GetNodeTypeString()}]>";
+    }
+
+    public string GetRawStatement() {
+        return $"{Expression?.GetRawExpression()}";
     }
 }

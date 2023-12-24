@@ -2,12 +2,11 @@
 
 namespace RedMage115.RedLang.Core.RedAst;
 
-public class IntegerLiteral : Expression{
-
+public class Boolean : Expression {
     public Token Token { get; set; }
-    public long Value { get; set; }
+    public bool Value { get; set; }
 
-    public IntegerLiteral(Token token, long value) {
+    public Boolean(Token token, bool value) {
         Token = token;
         Value = value;
     }
@@ -17,7 +16,7 @@ public class IntegerLiteral : Expression{
     }
 
     public string GetNodeTypeString() {
-        return $"<Integer Literal [{Value}]>";
+        return $"<Boolean Expression [{Value}]>";
     }
 
     public string GetRawExpression() {

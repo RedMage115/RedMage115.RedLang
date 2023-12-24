@@ -21,6 +21,10 @@ public class InfixExpression : Expression {
     }
 
     public string GetNodeTypeString() {
-        return $"<Infix Expression [{Left.GetTokenLiteral()} {Operator} {Right.GetTokenLiteral()}]>";
+        return $"<Infix Expression [{Left.GetNodeTypeString()} {Operator} {Right.GetNodeTypeString()}]>";
+    }
+
+    public string GetRawExpression() {
+        return $"{Left.GetRawExpression()}{Operator}{Right.GetRawExpression()}";
     }
 }

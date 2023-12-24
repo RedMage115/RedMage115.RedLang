@@ -6,6 +6,7 @@ namespace RedMage115.RedLang.Core.RedParser;
 
 public partial class Parser {
     private Lexer Lexer { get; set; }
+    private LogLevel LogLevel { get; }
     public List<string> Errors { get; } = [];
     private Token CurrentToken { get; set; } = null!;
     private Token PeekToken { get; set; } = null!;
@@ -21,12 +22,15 @@ public partial class Parser {
         { TokenType.MINUS, Precedence.SUM },
         { TokenType.SLASH, Precedence.PRODUCT },
         { TokenType.ASTRIX, Precedence.PRODUCT },
+        { TokenType.LPAREN, Precedence.CALL },
     };
 
-    public Parser(Lexer lexer) {
+    public Parser(Lexer lexer, LogLevel logLevel = LogLevel.NONE) {
         Lexer = lexer;
+        LogLevel = logLevel;
         NextToken();
         NextToken();
         InitParseMaps();
     }
+    
 }
