@@ -8,6 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{ACC76B4D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMage115.RedLang.CoreTests", "RedMage115.RedLang.CoreTests\RedMage115.RedLang.CoreTests.csproj", "{63C93FD7-B0D2-4903-9855-C7C061CADE77}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedMage115.RedLang.Repl", "RedMage115.RedLang.Repl\RedMage115.RedLang.Repl.csproj", "{031E38F9-3C44-4256-BD83-01C90F401469}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,9 +24,14 @@ Global
 		{63C93FD7-B0D2-4903-9855-C7C061CADE77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63C93FD7-B0D2-4903-9855-C7C061CADE77}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63C93FD7-B0D2-4903-9855-C7C061CADE77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{031E38F9-3C44-4256-BD83-01C90F401469}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{031E38F9-3C44-4256-BD83-01C90F401469}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{031E38F9-3C44-4256-BD83-01C90F401469}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{031E38F9-3C44-4256-BD83-01C90F401469}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6D105FD9-8CBD-48CF-A9A9-8F3C887A7BFE} = {80C7BD01-AB96-464F-ADB5-3EF574B2AD3A}
 		{63C93FD7-B0D2-4903-9855-C7C061CADE77} = {ACC76B4D-6DE8-4454-8D48-7E94C32661F7}
+		{031E38F9-3C44-4256-BD83-01C90F401469} = {80C7BD01-AB96-464F-ADB5-3EF574B2AD3A}
 	EndGlobalSection
 EndGlobal
