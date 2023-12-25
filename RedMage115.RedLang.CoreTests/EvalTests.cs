@@ -238,11 +238,34 @@ public class EvalTests {
             var actual = Evaluator.Eval(program, environment);
             Assert.NotNull(actual);
             _testOutputHelper.WriteLine($"Expected: [{test.expected}],\nGot: [{actual}]");
-            Assert.IsType<Integer>(actual);
+            if (actual is Error error) {
+                _testOutputHelper.WriteLine(program.GetNodeTypeString());
+                Assert.Fail(error.Message);
+            }
             if (actual is Integer integer) {
+                _testOutputHelper.WriteLine($"Expected: {test.expected.InspectObject()}, got: {integer.Value}");
                 Assert.Equal(test.expected, integer);
             }
             
+            
         }
+    }
+    
+    [Fact]
+    private void TestClosuresEval() {
+        var input = """
+                    let newAdder = fn(x) {
+                        fn(y) { x + y };
+                    };
+                    let addTwo = newAdder(2);
+                    addTwo(2);
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        _testOutputHelper.WriteLine($"Expected: 4, got: {eval.InspectObject()}");
+        Assert.Equal("4", eval.InspectObject());
     }
 }
