@@ -3,5 +3,7 @@
 public enum ObjectType {
     INTEGER,
     BOOLEAN,
-    NULL
+    NULL,
+    RETURN,
+    ERROR
 }

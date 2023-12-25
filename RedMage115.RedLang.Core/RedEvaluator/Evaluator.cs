@@ -16,7 +16,7 @@ public static class Evaluator {
         
             switch (node) {
                 case Program prog:
-                    return EvalStatements(prog.Statements);
+                    return EvalProgram(prog.Statements);
                 case ExpressionStatement expressionStatement:
                     return Eval(expressionStatement.Expression);
                 case IntegerLiteral integerLiteral:
@@ -28,21 +28,55 @@ public static class Evaluator {
                     };
                 case PrefixExpression prefixExpression:
                     var prefixRight = Eval(prefixExpression.Right);
+                    if (IsError(prefixRight)) return prefixRight;
                     return EvalPrefixExpression(prefixExpression.Operator, prefixRight);
                 case InfixExpression infixExpression:
                     var infixLeft = Eval(infixExpression.Left);
+                    if (IsError(infixLeft)) return infixLeft;
                     var infixRight = Eval(infixExpression.Right);
+                    if (IsError(infixRight)) return infixRight;
                     return EvalInfixExpression(infixExpression.Operator, infixLeft, infixRight);
+                case BlockStatement blockStatement:
+                    return EvalBlockStatement(blockStatement);
+                case IfExpression ifExpression:
+                    return EvalIfExpression(ifExpression);
+                case ReturnStatement returnStatement:
+                    var value = Eval(returnStatement.ReturnValue);
+                    if (value is null) {
+                        return new Error($"return value is null, {returnStatement.GetRawStatement()}");
+                    }
+                    if (IsError(value)) return value;
+                    return new ReturnValue(value);
                     
             }
             return null;
         
     }
-
-    private static Object? EvalStatements(List<Statement> statements) {
+    
+    private static Object? EvalProgram(List<Statement> statements) {
         Object? result = null;
         foreach (var statement in statements) {
             result = Eval(statement);
+            if (result is ReturnValue returnValue) {
+                return returnValue.Value;
+            }
+            if (result is Error error) {
+                return error;
+            }
+        }
+        return result;
+    }
+    
+    private static Object? EvalBlockStatement(BlockStatement blockStatement) {
+        Object? result = null;
+        foreach (var statement in blockStatement.Statements) {
+            result = Eval(statement);
+            if (result is ReturnValue returnValue) {
+                return returnValue;
+            }
+            if (result is Error error) {
+                return error;
+            }
         }
         return result;
     }
@@ -51,7 +85,7 @@ public static class Evaluator {
         return @operator switch {
             "!" => EvalBangOperator(right),
             "-" => EvalMinusPrefixOperatorExpression(right),
-            _ => Null
+            _ => new Error($"unknown operator: {@operator}{right.GetObjectType()}")
         };
     }
 
@@ -68,7 +102,7 @@ public static class Evaluator {
 
     private static Object EvalMinusPrefixOperatorExpression(Object right) {
         if (right is not Integer) {
-            return Null;
+            return new Error($"int expected, got: {right.GetObjectType()}");
         }
         var value = long.Parse(right.InspectObject());
         return new Integer(-value);
@@ -87,7 +121,7 @@ public static class Evaluator {
             }
         }
         
-        return Null;
+        return new Error($"expected (int operator int) or (bool operator bool), got: {left.GetObjectType()}{@operator}{right.GetObjectType()}");
     }
 
     private static Object EvalIntegerInfixExpression(string @operator, Integer left, Integer right) {
@@ -100,7 +134,35 @@ public static class Evaluator {
             ">" => left.Value > right.Value ? True : False,
             "==" => left.Value == right.Value ? True : False,
             "!=" => left.Value != right.Value ? True : False,
-            _ => Null
+            _ => new Error($"unknown infix operator: {@operator}")
         };
+    }
+
+    private static Object? EvalIfExpression(IfExpression ifExpression) {
+        var condition = Eval(ifExpression.Condition);
+        if (condition is null) {
+            return new Error($"if condition is empty: if ({ifExpression.Condition.GetRawExpression()}) {{...}}");
+        }
+
+        if (condition is Error) {
+            return condition;
+        }
+        if (IsTruthy(condition)) {
+            return Eval(ifExpression.Consequence);
+        }
+        if (ifExpression.Alternative is null) return Null;
+        return Eval(ifExpression.Alternative);
+    }
+
+    private static bool IsTruthy(Object @object) {
+        return @object switch {
+            RedObject.Null => false,
+            Boolean boolean => boolean.Value,
+            _ => true
+        };
+    }
+
+    private static bool IsError(Object @object) {
+        return @object is Error;
     }
 }
