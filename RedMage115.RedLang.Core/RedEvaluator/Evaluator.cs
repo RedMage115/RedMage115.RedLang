@@ -47,10 +47,22 @@ public static class Evaluator {
                     var letValue = Eval(letStatement.Value, environment);
                     if (IsError(letValue)) return letValue;
                     var letBindResult = environment.TrySetValue(letStatement.Name.Value, letValue);
-                    if (letBindResult.Result == OptionResult.Err) { }
                     break;
                 case Identifier identifier:
                     return EvalIdentifier(identifier, environment);
+                case FunctionLiteral functionLiteral:
+                    var functionParams = functionLiteral.Parameters;
+                    var functionBody = functionLiteral.Body;
+                    var function = new Function(functionParams, functionBody, environment);
+                    return function;
+                case CallExpression callExpression:
+                    var callFunction = Eval(callExpression.Function, environment);
+                    if (IsError(callFunction)) return callFunction;
+                    var callArgs = EvalExpressions(callExpression.Arguments, environment);
+                    if (callArgs.Count == 1 && callArgs.First() is Error) {
+                        return callArgs.First();
+                    }
+                    return ApplyFunction(callFunction, callArgs);
             }
             return Null;
     }
@@ -156,12 +168,50 @@ public static class Evaluator {
     }
 
     private static Object EvalIdentifier(Identifier node, Environment environment) {
-        var value = environment.TryGetValue(node.Value);
-        if (value is { Result: OptionResult.Ok, Value: not null }) {
-            return value.Value;
+        if (environment.TryGetValue(node.Value, out var identValue) && identValue is not null) {
+            return identValue;
         }
         return new Error($"identifier not found: {node.Value}");
     }
+
+    private static List<Object> EvalExpressions(List<Expression> expressions,
+        Environment environment) {
+        var resultList = new List<Object>();
+        foreach (var expression in expressions) {
+            var eval = Eval(expression, environment);
+            resultList.Add(eval);
+            if (IsError(eval)) {
+                return resultList;
+            }
+        }
+        return resultList;
+    }
+
+    private static Object ApplyFunction(Object callFunction, List<Object> args) {
+        if (callFunction is Function function) {
+            var extendedEnv = ExtendFunctionEnv(function, args);
+            var evaluated = Eval(function.Body, extendedEnv);
+            return UnwrapReturnValue(evaluated);
+        }
+        return new Error($"not a function: {callFunction.GetObjectType()}");
+    }
+
+    private static Environment ExtendFunctionEnv(Function function, List<Object> args) {
+        var enclosedEnv = new Environment(function.Environment);
+        for (var i = 0; i < args.Count; i++) {
+            var ident = function.Parameters[i].Value;
+            var value = args[i];
+        }
+        return enclosedEnv;
+    }
+
+    private static Object UnwrapReturnValue(Object returnObject) {
+        if (returnObject is ReturnValue returnValue) {
+            return returnValue.Value;
+        }
+        return returnObject;
+    }
+    
     
     private static bool IsTruthy(Object @object) {
         return @object switch {

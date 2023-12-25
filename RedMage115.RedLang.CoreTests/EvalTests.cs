@@ -197,4 +197,52 @@ public class EvalTests {
             
         }
     }
+    
+    [Fact]
+    private void TestFunctionEval() {
+        var tests = new List<string>() {
+            "fn (x){x+1;};",
+        };
+        foreach (var test in tests) {
+            var parser = new Parser(new Lexer(test));
+            var program = parser.ParseProgram();
+            var environment = new Environment();
+            Assert.NotNull(program);
+            Assert.Empty(parser.Errors);
+            var actual = Evaluator.Eval(program, environment);
+            Assert.NotNull(actual);
+            _testOutputHelper.WriteLine($"Expected: [{test}],\nGot: [{actual.InspectObject()}]");
+            Assert.IsType<Function>(actual);
+            if (actual is Function function) {
+                Assert.Single(function.Parameters);
+                function.Environment.TryGetValue("x", out var arg);
+                _testOutputHelper.WriteLine($"Args: {arg}");
+            }
+        }
+    }
+    
+    [Fact]
+    private void TestFunctionCallEval() {
+        var tests = new List<(string input, Object expected)>() {
+            ("let identity = fn(x) { x; }; identity(5);", new Integer(5)),
+            ("let identity = fn(x) { return x; }; identity(5);", new Integer(5)),
+            ("fn(x) { x; }(5)", new Integer(5)),
+            ("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", new Integer(20)),
+        };
+        foreach (var test in tests) {
+            var parser = new Parser(new Lexer(test.input));
+            var program = parser.ParseProgram();
+            var environment = new Environment();
+            Assert.NotNull(program);
+            Assert.Empty(parser.Errors);
+            var actual = Evaluator.Eval(program, environment);
+            Assert.NotNull(actual);
+            _testOutputHelper.WriteLine($"Expected: [{test.expected}],\nGot: [{actual}]");
+            Assert.IsType<Integer>(actual);
+            if (actual is Integer integer) {
+                Assert.Equal(test.expected, integer);
+            }
+            
+        }
+    }
 }

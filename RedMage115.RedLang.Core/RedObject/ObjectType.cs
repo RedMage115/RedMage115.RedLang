@@ -5,5 +5,6 @@ public enum ObjectType {
     BOOLEAN,
     NULL,
     RETURN,
-    ERROR
+    ERROR,
+    FUNCTION
 }
