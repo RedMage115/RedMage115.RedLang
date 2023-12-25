@@ -1,4 +1,5 @@
-﻿using RedMage115.RedLang.Core.RedLexer;
+﻿using RedMage115.RedLang.Core.RedEvaluator;
+using RedMage115.RedLang.Core.RedLexer;
 using RedMage115.RedLang.Core.RedParser;
 using RedMage115.RedLang.Core.RedToken;
 
@@ -7,27 +8,30 @@ namespace RedMage115.RedLang.Core.RedRepl;
 public static class Repl {
     private const string Prompt = ">> ";
 
-    public static void Start() {
+    public static void Start(ReplMode mode = ReplMode.None) {
         Console.WriteLine("=======================================");
         Console.WriteLine("""REDLANG REPL - Enter "@exit" to exit """);
         Console.WriteLine("""REDLANG REPL - Enter "@lex" to lex """);
         Console.WriteLine("""REDLANG REPL - Enter "@ast" to get ast """);
         Console.WriteLine("""REDLANG REPL - Enter "@parse" to parse """);
+        Console.WriteLine("""REDLANG REPL - Enter "@full" to enter REPL """);
         Console.WriteLine("=======================================");
-        var mode = Mode.None;
-        while (mode == Mode.None) {
+        while (mode == ReplMode.None) {
             Console.WriteLine("Enter Mode:");
             Console.Write(Prompt);
             var input = Console.ReadLine();
             switch (input.ToLower()) {
                 case "@lex":
-                    mode = Mode.Lex;
+                    mode = ReplMode.Lex;
                     break;
                 case "@ast":
-                    mode = mode = Mode.Ast;
+                    mode = ReplMode.Ast;
                     break;
                 case "@parse":
-                    mode = mode = Mode.Parse;
+                    mode = ReplMode.Parse;
+                    break;
+                case "@full":
+                    mode = ReplMode.Full;
                     break;
                 default:
                     Console.WriteLine("Entered mode is invalid");
@@ -35,7 +39,8 @@ public static class Repl {
             }
         }
 
-        if (mode == Mode.Lex) {
+        Console.WriteLine($"Mode is: {mode}");
+        if (mode == ReplMode.Lex) {
             while (true) {
                 Console.Write("LEX " + Prompt);
                 var input = Console.ReadLine();
@@ -52,7 +57,7 @@ public static class Repl {
                 }
             }
         }
-        else if (mode == Mode.Ast) {
+        else if (mode == ReplMode.Ast) {
             while (true) {
                 Console.Write("AST " + Prompt);
                 var input = Console.ReadLine();
@@ -72,7 +77,7 @@ public static class Repl {
                 }
             }
         }
-        else if (mode == Mode.Parse) {
+        else if (mode == ReplMode.Parse) {
             while (true) {
                 Console.Write("PARSE " + Prompt);
                 var input = Console.ReadLine();
@@ -92,13 +97,32 @@ public static class Repl {
                 }
             }
         }
+        else if (mode == ReplMode.Full) {
+            while (true) {
+                Console.Write(Prompt);
+                var input = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input)) continue;
+                if (input == "@exit") {
+                    Console.WriteLine("Exiting now...");
+                    break;
+                }
+                var parser = new Parser(new Lexer(input));
+                var program = parser.ParseProgram();
+                foreach (var error in parser.Errors) {
+                    Console.WriteLine($"ERROR: {error}");
+                }
+
+                Console.WriteLine(Evaluator.Eval(program)?.InspectObject());
+            }
+        }
     }
     
-    private enum Mode {
+    public enum ReplMode {
         None,
         Lex,
         Ast,
-        Parse
+        Parse,
+        Full
     }
     
 }

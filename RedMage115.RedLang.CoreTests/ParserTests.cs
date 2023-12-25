@@ -30,7 +30,7 @@ public class ParserTests {
             statement => Assert.Equal("<Let Statement [let x <Integer Literal [5]>] >",statement.GetNodeTypeString()),
             statement => Assert.Equal("<Let Statement [let y <Integer Literal [10]>] >",statement.GetNodeTypeString()),
             statement => Assert.Equal("<Let Statement [let foobar <Integer Literal [838383]>] >",statement.GetNodeTypeString()),
-            statement => Assert.Equal("<Let Statement [let x <Infix Expression [1*2*3*4 * 5]>] >",statement.GetNodeTypeString()));
+            statement => Assert.Equal("<Let Statement [let x <Infix Expression [<Infix Expression [<Infix Expression [<Infix Expression [<Integer Literal [1]> * <Integer Literal [2]>]> * <Integer Literal [3]>]> * <Integer Literal [4]>]> * <Integer Literal [5]>]>] >",statement.GetNodeTypeString()));
         ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
     }
     
