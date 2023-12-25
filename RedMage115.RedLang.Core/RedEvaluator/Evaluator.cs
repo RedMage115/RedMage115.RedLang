@@ -201,6 +201,7 @@ public static class Evaluator {
         for (var i = 0; i < args.Count; i++) {
             var ident = function.Parameters[i].Value;
             var value = args[i];
+            enclosedEnv.TrySetValue(ident, value);
         }
         return enclosedEnv;
     }
