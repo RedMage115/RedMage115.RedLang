@@ -1,4 +1,5 @@
-﻿using RedMage115.RedLang.Core.RedEvaluator;
+﻿using System.Diagnostics;
+using RedMage115.RedLang.Core.RedEvaluator;
 using RedMage115.RedLang.Core.RedLexer;
 using RedMage115.RedLang.Core.RedObject;
 using RedMage115.RedLang.Core.RedParser;
@@ -267,5 +268,36 @@ public class EvalTests {
         var eval = Evaluator.Eval(program, env);
         _testOutputHelper.WriteLine($"Expected: 4, got: {eval.InspectObject()}");
         Assert.Equal("4", eval.InspectObject());
+    }
+    [Fact]
+    private void TestMemUsageEval() {
+        var pageInitial = Process.GetCurrentProcess().PagedMemorySize64;
+        var privInitial = Process.GetCurrentProcess().WorkingSet64;
+        var virtInitial = Process.GetCurrentProcess().VirtualMemorySize64;
+        var input = """
+                    let counter = fn(x) {
+                        if (x > 100) {
+                            return true;
+                        } 
+                        else {
+                            let foobar = 9999;
+                            counter(x + 1);
+                        }
+                    };
+                    counter(0);
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        var pageEnd = Process.GetCurrentProcess().PeakPagedMemorySize64;
+        var privEnd = Process.GetCurrentProcess().PeakWorkingSet64;
+        var virtEnd = Process.GetCurrentProcess().PeakVirtualMemorySize64;
+
+        _testOutputHelper.WriteLine($"Paged Initial: {pageInitial}, End: {pageEnd}, Diff: {pageEnd-pageInitial}");
+        _testOutputHelper.WriteLine($"Working Set Initial: {privInitial}, End: {privEnd}, Diff: {privEnd-privInitial}");
+        _testOutputHelper.WriteLine($"Virtual Initial: {virtInitial}, End: {virtEnd}, Diff: {virtEnd-virtInitial}");
+        _testOutputHelper.WriteLine(eval.InspectObject());
     }
 }
