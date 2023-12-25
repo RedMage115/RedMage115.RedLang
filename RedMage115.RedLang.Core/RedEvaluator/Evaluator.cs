@@ -2,6 +2,7 @@
 using RedMage115.RedLang.Core.RedAst;
 using RedMage115.RedLang.Core.RedObject;
 using Boolean = RedMage115.RedLang.Core.RedObject.Boolean;
+using Environment = RedMage115.RedLang.Core.RedObject.Environment;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
 
 namespace RedMage115.RedLang.Core.RedEvaluator;
@@ -12,13 +13,12 @@ public static class Evaluator {
     public static readonly Boolean False = new(false);
     public static readonly Null Null = new();
     
-    public static Object? Eval(Node? node) {
-        
+    public static Object Eval(Node? node, Environment environment) {
             switch (node) {
-                case Program prog:
-                    return EvalProgram(prog.Statements);
+                case Program program:
+                    return EvalProgram(program.Statements, environment);
                 case ExpressionStatement expressionStatement:
-                    return Eval(expressionStatement.Expression);
+                    return Eval(expressionStatement.Expression, environment);
                 case IntegerLiteral integerLiteral:
                     return new Integer(integerLiteral.Value);
                 case RedAst.Boolean boolean:
@@ -27,36 +27,38 @@ public static class Evaluator {
                         false => False
                     };
                 case PrefixExpression prefixExpression:
-                    var prefixRight = Eval(prefixExpression.Right);
+                    var prefixRight = Eval(prefixExpression.Right, environment);
                     if (IsError(prefixRight)) return prefixRight;
                     return EvalPrefixExpression(prefixExpression.Operator, prefixRight);
                 case InfixExpression infixExpression:
-                    var infixLeft = Eval(infixExpression.Left);
+                    var infixLeft = Eval(infixExpression.Left, environment);
                     if (IsError(infixLeft)) return infixLeft;
-                    var infixRight = Eval(infixExpression.Right);
+                    var infixRight = Eval(infixExpression.Right, environment);
                     if (IsError(infixRight)) return infixRight;
                     return EvalInfixExpression(infixExpression.Operator, infixLeft, infixRight);
                 case BlockStatement blockStatement:
-                    return EvalBlockStatement(blockStatement);
+                    return EvalBlockStatement(blockStatement, environment);
                 case IfExpression ifExpression:
-                    return EvalIfExpression(ifExpression);
+                    return EvalIfExpression(ifExpression, environment);
                 case ReturnStatement returnStatement:
-                    var value = Eval(returnStatement.ReturnValue);
-                    if (value is null) {
-                        return new Error($"return value is null, {returnStatement.GetRawStatement()}");
-                    }
-                    if (IsError(value)) return value;
-                    return new ReturnValue(value);
-                    
+                    var returnValue = Eval(returnStatement.ReturnValue, environment);
+                    return IsError(returnValue) ? returnValue : new ReturnValue(returnValue);
+                case LetStatement letStatement:
+                    var letValue = Eval(letStatement.Value, environment);
+                    if (IsError(letValue)) return letValue;
+                    var letBindResult = environment.TrySetValue(letStatement.Name.Value, letValue);
+                    if (letBindResult.Result == OptionResult.Err) { }
+                    break;
+                case Identifier identifier:
+                    return EvalIdentifier(identifier, environment);
             }
-            return null;
-        
+            return Null;
     }
     
-    private static Object? EvalProgram(List<Statement> statements) {
-        Object? result = null;
+    private static Object EvalProgram(List<Statement> statements, Environment environment) {
+        Object result = Null;
         foreach (var statement in statements) {
-            result = Eval(statement);
+            result = Eval(statement, environment);
             if (result is ReturnValue returnValue) {
                 return returnValue.Value;
             }
@@ -67,10 +69,10 @@ public static class Evaluator {
         return result;
     }
     
-    private static Object? EvalBlockStatement(BlockStatement blockStatement) {
-        Object? result = null;
+    private static Object EvalBlockStatement(BlockStatement blockStatement, Environment environment) {
+        Object result = Null;
         foreach (var statement in blockStatement.Statements) {
-            result = Eval(statement);
+            result = Eval(statement, environment);
             if (result is ReturnValue returnValue) {
                 return returnValue;
             }
@@ -138,22 +140,29 @@ public static class Evaluator {
         };
     }
 
-    private static Object? EvalIfExpression(IfExpression ifExpression) {
-        var condition = Eval(ifExpression.Condition);
-        if (condition is null) {
+    private static Object EvalIfExpression(IfExpression ifExpression, Environment environment) {
+        var condition = Eval(ifExpression.Condition, environment);
+        if (condition is Null) {
             return new Error($"if condition is empty: if ({ifExpression.Condition.GetRawExpression()}) {{...}}");
         }
-
         if (condition is Error) {
             return condition;
         }
         if (IsTruthy(condition)) {
-            return Eval(ifExpression.Consequence);
+            return Eval(ifExpression.Consequence, environment);
         }
         if (ifExpression.Alternative is null) return Null;
-        return Eval(ifExpression.Alternative);
+        return Eval(ifExpression.Alternative, environment);
     }
 
+    private static Object EvalIdentifier(Identifier node, Environment environment) {
+        var value = environment.TryGetValue(node.Value);
+        if (value is { Result: OptionResult.Ok, Value: not null }) {
+            return value.Value;
+        }
+        return new Error($"identifier not found: {node.Value}");
+    }
+    
     private static bool IsTruthy(Object @object) {
         return @object switch {
             RedObject.Null => false,

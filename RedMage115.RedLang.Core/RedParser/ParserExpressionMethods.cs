@@ -36,7 +36,7 @@ public partial class Parser {
         return leftExpression;
     }
 
-    private Expression? ParseIdentifier() {
+    private Expression ParseIdentifier() {
         if (LogLevel > 0) {
             Debug.WriteLine("PARSE INDENT");
         }
@@ -98,7 +98,7 @@ public partial class Parser {
         return new InfixExpression(token, left, token.Literal, right);
     }
 
-    private Expression? ParseBoolean() {
+    private Expression ParseBoolean() {
         return new Boolean(CurrentToken, CurrentTokenIs(TokenType.TRUE));
     }
 
@@ -153,11 +153,14 @@ public partial class Parser {
         if (!ExpectPeek(TokenType.LBRACE)) {
             return null;
         }
+        if (parameters is null) {
+            return null;
+        }
         var body = ParseBlockStatement();
         return new FunctionLiteral(token, parameters, body);
     }
 
-    private List<Identifier> ParseFunctionParameters() {
+    private List<Identifier>? ParseFunctionParameters() {
         var identList = new List<Identifier>();
         if (PeekTokenIs(TokenType.RPAREN)) {
             NextToken();

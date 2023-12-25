@@ -4,6 +4,7 @@ using RedMage115.RedLang.Core.RedObject;
 using RedMage115.RedLang.Core.RedParser;
 using Xunit.Abstractions;
 using Boolean = RedMage115.RedLang.Core.RedObject.Boolean;
+using Environment = RedMage115.RedLang.Core.RedObject.Environment;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
 
 namespace RedMage115.RedLang.CoreTests;
@@ -33,10 +34,11 @@ public class EvalTests {
         };
         foreach (var test in tests) {
             var parser = new Parser(new Lexer(test.input));
+            var environment = new Environment();
             var program = parser.ParseProgram();
             Assert.NotNull(program);
             Assert.Empty(parser.Errors);
-            var actual = (Integer?)Evaluator.Eval(program);
+            var actual = (Integer?)Evaluator.Eval(program,environment);
             Assert.NotNull(actual);
             _testOutputHelper.WriteLine($"Expected: {test.expected}, got: {actual?.Value}");
             Assert.Equal(test.expected, actual?.Value);
@@ -63,10 +65,11 @@ public class EvalTests {
         };
         foreach (var test in tests) {
             var parser = new Parser(new Lexer(test.input));
+            var environment = new Environment();
             var program = parser.ParseProgram();
             Assert.NotNull(program);
             Assert.Empty(parser.Errors);
-            var actual = (Boolean?)Evaluator.Eval(program);
+            var actual = (Boolean?)Evaluator.Eval(program,environment);
             Assert.NotNull(actual);
             _testOutputHelper.WriteLine($"Expected: {test.expected}, got: {actual?.Value}");
             Assert.Equal(test.expected, actual?.Value);
@@ -86,9 +89,10 @@ public class EvalTests {
         foreach (var test in tests) {
             var parser = new Parser(new Lexer(test.input));
             var program = parser.ParseProgram();
+            var environment = new Environment();
             Assert.NotNull(program);
             Assert.Empty(parser.Errors);
-            var actual = (Boolean?)Evaluator.Eval(program);
+            var actual = (Boolean?)Evaluator.Eval(program, environment);
             Assert.NotNull(actual);
             _testOutputHelper.WriteLine($"Expected: {test.expected}, got: {actual?.Value}");
             Assert.Equal(test.expected, actual?.Value);
@@ -109,9 +113,10 @@ public class EvalTests {
         foreach (var test in tests) {
             var parser = new Parser(new Lexer(test.input));
             var program = parser.ParseProgram();
+            var environment = new Environment();
             Assert.NotNull(program);
             Assert.Empty(parser.Errors);
-            var actual = Evaluator.Eval(program);
+            var actual = Evaluator.Eval(program, environment);
             Assert.NotNull(actual);
             _testOutputHelper.WriteLine($"Expected: {test.expected}, got: {actual}");
             Assert.Equal(test.expected, actual);
@@ -130,9 +135,10 @@ public class EvalTests {
         foreach (var test in tests) {
             var parser = new Parser(new Lexer(test.input));
             var program = parser.ParseProgram();
+            var environment = new Environment();
             Assert.NotNull(program);
             Assert.Empty(parser.Errors);
-            var actual = Evaluator.Eval(program);
+            var actual = Evaluator.Eval(program,environment);
             Assert.NotNull(actual);
             _testOutputHelper.WriteLine($"Expected: {test.expected}, got: {actual}");
             switch (actual) {
@@ -152,16 +158,43 @@ public class EvalTests {
     private void TestErrorEval() {
         var tests = new List<(string input, string expected)>() {
             ("5 + true", "ERROR: expected (int operator int) or (bool operator bool), got: INTEGER+BOOLEAN"),
+            ("foobar", "ERROR: identifier not found: foobar"),
         };
         foreach (var test in tests) {
             var parser = new Parser(new Lexer(test.input));
             var program = parser.ParseProgram();
+            var environment = new Environment();
             Assert.NotNull(program);
             Assert.Empty(parser.Errors);
-            var actual = Evaluator.Eval(program);
+            var actual = Evaluator.Eval(program, environment);
             Assert.NotNull(actual);
             _testOutputHelper.WriteLine($"Expected: [{test.expected}],\nGot: [{actual.InspectObject()}]");
             Assert.Equal(test.expected, actual.InspectObject());
+        }
+    }
+    
+    [Fact]
+    private void TestLetStatementEval() {
+        var tests = new List<(string input, Object expected)>() {
+            ("let a = 5; a;", new Integer(5)),
+            ("let a = 5 * 5; a;", new Integer(25)),
+            ("let a = 5; let b = a; b;", new Integer(5)),
+            ("let a = 5; let b = a; let c = a + b + 5; c;", new Integer(15)),
+        };
+        foreach (var test in tests) {
+            var parser = new Parser(new Lexer(test.input));
+            var program = parser.ParseProgram();
+            var environment = new Environment();
+            Assert.NotNull(program);
+            Assert.Empty(parser.Errors);
+            var actual = Evaluator.Eval(program, environment);
+            Assert.NotNull(actual);
+            _testOutputHelper.WriteLine($"Expected: [{test.expected}],\nGot: [{actual.InspectObject()}]");
+            Assert.IsType<Integer>(actual);
+            if (actual is Integer integer) {
+                Assert.Equal(test.expected, integer);
+            }
+            
         }
     }
 }

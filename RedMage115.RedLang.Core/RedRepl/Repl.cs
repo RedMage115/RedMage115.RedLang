@@ -2,6 +2,7 @@
 using RedMage115.RedLang.Core.RedLexer;
 using RedMage115.RedLang.Core.RedParser;
 using RedMage115.RedLang.Core.RedToken;
+using Environment = RedMage115.RedLang.Core.RedObject.Environment;
 
 namespace RedMage115.RedLang.Core.RedRepl;
 
@@ -20,7 +21,7 @@ public static class Repl {
             Console.WriteLine("Enter Mode:");
             Console.Write(Prompt);
             var input = Console.ReadLine();
-            switch (input.ToLower()) {
+            switch (input?.ToLower()) {
                 case "@lex":
                     mode = ReplMode.Lex;
                     break;
@@ -39,6 +40,7 @@ public static class Repl {
             }
         }
 
+        var environment = new Environment();
         Console.WriteLine($"Mode is: {mode}");
         if (mode == ReplMode.Lex) {
             while (true) {
@@ -112,7 +114,7 @@ public static class Repl {
                     Console.WriteLine($"ERROR: {error}");
                 }
 
-                Console.WriteLine(Evaluator.Eval(program)?.InspectObject());
+                Console.WriteLine(Evaluator.Eval(program,environment).InspectObject());
             }
         }
     }
