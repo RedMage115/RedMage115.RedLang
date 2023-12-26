@@ -1,4 +1,5 @@
-﻿using RedMage115.RedLang.Core.RedToken;
+﻿using System.Diagnostics;
+using RedMage115.RedLang.Core.RedToken;
 
 namespace RedMage115.RedLang.Core.RedLexer;
 
@@ -83,6 +84,9 @@ public partial class Lexer {
             case '}':
                 token = new Token(TokenType.RBRACE, Ch);
                 break;
+            case '"':
+                token = new Token(TokenType.STRING, ReadString());
+                break;
             case '\0':
                 token = new Token(TokenType.EOF, "");
                 break;
@@ -117,6 +121,21 @@ public partial class Lexer {
         var initialPos = Position;
         while (IsDigit(Ch)) {
             ReadChar();
+        }
+        return Input[initialPos..Position];
+    }
+    
+    private string ReadString() {
+        var initialPos = Position+1;
+        if (PeekChar() is '"' or '\0') {
+            return "";
+        }
+        ReadChar();
+        while (true) {
+            ReadChar();
+            if (Ch is '"' or '\0') {
+                break;
+            }
         }
         return Input[initialPos..Position];
     }

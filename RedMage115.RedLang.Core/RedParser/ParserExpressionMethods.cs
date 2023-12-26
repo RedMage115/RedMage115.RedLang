@@ -54,6 +54,13 @@ public partial class Parser {
         return new IntegerLiteral(CurrentToken, value);
     }
 
+    private Expression? ParseStringLiteral() {
+        if (LogLevel > 0) {
+            Debug.WriteLine("PARSE STRING LITERAL");
+        }
+        return new StringLiteral(CurrentToken, CurrentToken.Literal);
+    }
+
     private Expression? ParsePrefixExpression() {
         if (LogLevel > 0) {
             Debug.WriteLine("BEGIN PARSE PREFIX EXPRESSION");

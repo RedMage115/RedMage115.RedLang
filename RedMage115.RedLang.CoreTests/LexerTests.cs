@@ -49,6 +49,8 @@ public class LexerTests {
                     }
                     10 == 10;
                     10 != 9;
+                    "foobar";
+                    "foo bar";
                     """;
         var expectedTokens = new List<Token>() {
             new(TokenType.LET, "let"),
@@ -124,6 +126,11 @@ public class LexerTests {
             new(TokenType.NOT_EQ, "!="),
             new(TokenType.INT, "9"),
             new(TokenType.SEMICOLON, ";"),
+            new(TokenType.STRING, "foobar"),
+            new(TokenType.SEMICOLON, ";"),
+            new(TokenType.STRING, "foo bar"),
+            new(TokenType.SEMICOLON, ";"),
+            new(TokenType.EOF, ""),
         };
         var lexer = new Lexer(input);
         foreach (var expected in expectedTokens) {

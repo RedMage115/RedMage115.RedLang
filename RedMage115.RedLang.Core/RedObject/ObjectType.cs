@@ -6,5 +6,7 @@ public enum ObjectType {
     NULL,
     RETURN,
     ERROR,
-    FUNCTION
+    FUNCTION,
+    STRING,
+    BUILTIN
 }

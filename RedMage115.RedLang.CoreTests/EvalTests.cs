@@ -300,4 +300,75 @@ public class EvalTests {
         _testOutputHelper.WriteLine($"Virtual Initial: {virtInitial}, End: {virtEnd}, Diff: {virtEnd-virtInitial}");
         _testOutputHelper.WriteLine(eval.InspectObject());
     }
+    
+    [Fact]
+    private void TestStringEval() {
+        var input = """
+                    "Hello, World"
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        _testOutputHelper.WriteLine($"Expected: \"Hello, World\", got: {eval.InspectObject()}");
+        Assert.Equal("Hello, World", eval.InspectObject());
+    }
+    
+    [Fact]
+    private void TestStringConcatEval() {
+        var input = """
+                    "Hello" + ", " + "World";
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        _testOutputHelper.WriteLine($"Expected: \"Hello, World\", got: {eval.InspectObject()}");
+        Assert.Equal("Hello, World", eval.InspectObject());
+    }
+    
+    [Fact]
+    private void TestStringConcatFailEval() {
+        var input = """
+                    "Hello" - ", " - "World";
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        Assert.IsType<Error>(eval);
+    }
+    
+    [Fact]
+    private void TestBuiltinFunctionEval() {
+        var inputs = new List<(string input, Object expected)>() {
+            ("""len("");""", new Error()),
+            ("""len("Hello, World");""", new Integer(12)),
+            ("""len("Hello", "World");""", new Error()),
+            ("""len(1);""", new Error()),
+            ("""len(true);""", new Error()),
+        };
+        foreach (var input in inputs) {
+            var parser = new Parser(new Lexer(input.input));
+            var program = parser.ParseProgram();
+            Assert.NotNull(program);
+            var env = new Environment();
+            var eval = Evaluator.Eval(program, env);
+            var expectedType = input.expected.GetObjectType();
+            _testOutputHelper.WriteLine($"Expected: {expectedType}, got: {eval.GetObjectType()}");
+            if (eval is Error error) {
+                _testOutputHelper.WriteLine($"Error: {error.Message}");
+            }
+            Assert.Equal(expectedType, eval.GetObjectType());
+            if (eval is Integer integer && input.expected is Integer expectedInteger) {
+                _testOutputHelper.WriteLine($"Expected: {expectedInteger.Value}, got: {integer.Value}");
+                Assert.Equal(expectedInteger, integer);
+            }
+        }
+        
+        
+    }
 }

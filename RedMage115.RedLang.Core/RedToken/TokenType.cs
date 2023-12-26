@@ -8,6 +8,10 @@ public enum TokenType {
     IDENT,
     //Numbers
     INT,
+    
+    //Types
+    STRING,
+    
     //Operators
     ASSIGN,
     PLUS,
@@ -29,6 +33,7 @@ public enum TokenType {
     RPAREN,
     LBRACE,
     RBRACE,
+    
     //Keywords
     FUNCTION,
     LET,

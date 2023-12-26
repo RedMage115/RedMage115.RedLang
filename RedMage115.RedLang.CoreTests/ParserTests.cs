@@ -277,4 +277,19 @@ public class ParserTests {
         Assert.NotNull(program);
         ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
     }
+    
+    [Fact]
+    private void TestStringExpression() {
+        var input = """
+                    "Hello, World"
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        _testOutputHelper.WriteLine($"Full AST: {program.GetNodeTypeString()}");
+        foreach (var statement in program.Statements) {
+            _testOutputHelper.WriteLine($"Raw: {statement.GetRawStatement()}");
+        }
+        Assert.NotNull(program);
+        ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
+    }
 }
