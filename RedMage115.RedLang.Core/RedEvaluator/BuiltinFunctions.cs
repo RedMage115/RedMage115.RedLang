@@ -91,5 +91,11 @@ public static partial class Evaluator {
             _ => incorrectTypeErr
         };
     }
-    
+
+    private static Object Print(List<Object> args) {
+        foreach (var o in args) {
+            Console.WriteLine(o.InspectObject());
+        }
+        return Null;
+    }
 }

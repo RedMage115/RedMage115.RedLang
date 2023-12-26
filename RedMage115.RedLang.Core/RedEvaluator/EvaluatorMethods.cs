@@ -240,14 +240,22 @@ public static partial class Evaluator {
     }
 
     private static Object EvalIndexExpression(Object left, Object index) {
-        if (index is Integer integer) {
-            switch (left) {
-                case Array array:
+
+        switch (left) {
+            case Array array:
+                if (index is Integer integer) {
                     return EvalArrayIndexExpression(array, integer);
-                default:
-                    break;
-            }
+                }
+                break;
+            case Hash hash:
+                if (index is Hashable hashable) {
+                    return EvalHashIndexExpression(hash, hashable);
+                }
+                break;
+            default:
+                break;
         }
+        
         return new Error($"index operator not supported for {left.GetObjectType()}[{index.GetObjectType()}]");
     }
 
@@ -258,6 +266,13 @@ public static partial class Evaluator {
             return Null;
         }
         return left.Elements[(int)index];
+    }
+    
+    private static Object EvalHashIndexExpression(Hash left, Hashable index) {
+        if (left.Pairs.TryGetValue(index.HashKey, out var pair)) {
+            return pair.Value;
+        }
+        return Null;
     }
 
     private static Object EvalHashLiteral(HashLiteral hashLiteral, Environment environment) {

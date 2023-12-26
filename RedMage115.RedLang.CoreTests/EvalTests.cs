@@ -538,4 +538,34 @@ public class EvalTests {
         }
         
     }
+
+    [Fact]
+    private void HashIndexEval() {
+        var input = """
+                    {"one":1,"five":5,"ten":10,}
+                    """;
+        var keys = new List<(string key, Object expected)>() {
+            ("[\"one\"]", new Integer(1)),
+            ("[\"five\"]",new Integer(5)),
+            ("[\"ten\"]",new Integer(10)),
+            ("[\"ugh\"]",new Null()),
+        };
+
+        foreach (var test in keys) {
+            var actual = input + test.key;
+            var parser = new Parser(new Lexer(actual));
+            var program = parser.ParseProgram();
+            Assert.NotNull(program);
+            var env = new Environment();
+            var eval = Evaluator.Eval(program, env);
+            if (eval is Error error) {
+                _testOutputHelper.WriteLine($"Error: {error.Message}");
+            }
+            _testOutputHelper.WriteLine($"Expected: {test.expected.InspectObject()}, got: {eval.InspectObject()}");
+            Assert.Equal(test.expected.GetObjectType(), eval.GetObjectType());
+        }
+        
+        
+        
+    }
 }

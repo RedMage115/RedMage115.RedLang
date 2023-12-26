@@ -19,6 +19,7 @@ public static partial class Evaluator {
         {"last", new Builtin(Last)},
         {"tail", new Builtin(Tail)},
         {"push", new Builtin(Push)},
+        {"print", new Builtin(Print)},
     };
 
 }
