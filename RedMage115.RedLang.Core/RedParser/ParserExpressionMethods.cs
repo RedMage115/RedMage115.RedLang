@@ -239,4 +239,32 @@ public partial class Parser {
         return new IndexExpression(token, left, index);
     }
 
+    private Expression? ParseHashLiteral() {
+        var token = CurrentToken;
+        var pairs = new Dictionary<Expression, Expression>();
+        while (!PeekTokenIs(TokenType.RBRACE)) {
+            NextToken();
+            var key = ParseExpression(Precedence.LOWEST);
+            if (key is null) {
+                return null;
+            }
+            if (!ExpectPeek(TokenType.COLON)) {
+                return null;
+            }
+            NextToken();
+            var value = ParseExpression(Precedence.LOWEST);
+            if (value is null) {
+                return null;
+            }
+            pairs.Add(key,value);
+            if (!PeekTokenIs(TokenType.RBRACE) && !ExpectPeek(TokenType.COMMA)) {
+                return null;
+            }
+        }
+        if (!ExpectPeek(TokenType.RBRACE)) {
+            return null;
+        }
+        return new HashLiteral(token, pairs);
+    }
+
 }

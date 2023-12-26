@@ -25,6 +25,7 @@ public enum TokenType {
     
     COMMA,
     SEMICOLON,
+    COLON,
     
     EQ,
     NOT_EQ,

@@ -90,6 +90,9 @@ public partial class Lexer {
             case ']':
                 token = new Token(TokenType.RBRACKET, Ch);
                 break;
+            case ':':
+                token = new Token(TokenType.COLON, Ch);
+                break;
             case '"':
                 token = new Token(TokenType.STRING, ReadString());
                 break;

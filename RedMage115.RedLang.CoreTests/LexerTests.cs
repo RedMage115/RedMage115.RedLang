@@ -52,6 +52,7 @@ public class LexerTests {
                     "foobar";
                     "foo bar";
                     [1,2];
+                    {"foo":"bar"};
                     """;
         var expectedTokens = new List<Token>() {
             new(TokenType.LET, "let"),
@@ -136,6 +137,12 @@ public class LexerTests {
             new(TokenType.COMMA, ","),
             new(TokenType.INT, "2"),
             new(TokenType.RBRACKET, "]"),
+            new(TokenType.SEMICOLON, ";"),
+            new(TokenType.LBRACE, "{"),
+            new(TokenType.STRING, "foo"),
+            new(TokenType.COLON, ":"),
+            new(TokenType.STRING, "bar"),
+            new(TokenType.RBRACE, "}"),
             new(TokenType.SEMICOLON, ";"),
             new(TokenType.EOF, ""),
         };

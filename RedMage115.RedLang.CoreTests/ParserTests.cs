@@ -322,4 +322,64 @@ public class ParserTests {
         Assert.NotNull(program);
         ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
     }
+    [Fact]
+    private void TestHashLiteralExpression() {
+        var input = """
+                    {"foo":"1","bar":"2"}
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        _testOutputHelper.WriteLine($"Full AST: {program.GetNodeTypeString()}");
+        foreach (var statement in program.Statements) {
+            _testOutputHelper.WriteLine($"Raw: {statement.GetRawStatement()}");
+        }
+        Assert.NotNull(program);
+        ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
+    }
+    [Fact]
+    private void TestHashLiteralKeysExpression() {
+        var input = """
+                    {"foo":"1","bar":"2","baz":1+1}
+                    """;
+        var expected = new List<KeyValuePair<string, string>>() {
+            new KeyValuePair<string, string>("foo","1"),
+            new KeyValuePair<string, string>("bar","2"),
+            new KeyValuePair<string, string>("baz","1+1"),
+        };
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        _testOutputHelper.WriteLine($"Full AST: {program.GetNodeTypeString()}");
+        foreach (var statement in program.Statements) {
+            _testOutputHelper.WriteLine($"Raw: {statement.GetRawStatement()}");
+        }
+        Assert.NotNull(program);
+        ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
+        var exStatement = program.Statements.First(s => s is ExpressionStatement) as ExpressionStatement;
+        var hashLit = exStatement?.Expression as HashLiteral;
+        Assert.NotNull(hashLit);
+        var hashList = hashLit.Pairs.ToList();
+        for (var i = 0; i < hashList.Count; i++) {
+            Assert.Equal(expected[i].Key, hashList[i].Key.GetRawExpression());
+            Assert.Equal(expected[i].Value, hashList[i].Value.GetRawExpression());
+        }
+    }
+    [Fact]
+    private void TestEmptyHashLiteralExpression() {
+        var input = """
+                    {}
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        _testOutputHelper.WriteLine($"Full AST: {program.GetNodeTypeString()}");
+        foreach (var statement in program.Statements) {
+            _testOutputHelper.WriteLine($"Raw: {statement.GetRawStatement()}");
+        }
+        Assert.NotNull(program);
+        ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
+        var exStatement = program.Statements.First(s => s is ExpressionStatement) as ExpressionStatement;
+        var hashLit = exStatement.Expression as HashLiteral;
+        Assert.NotNull(hashLit);
+        Assert.NotNull(hashLit);
+        Assert.Empty(hashLit.Pairs);
+    }
 }

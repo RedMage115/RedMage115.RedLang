@@ -36,6 +36,7 @@ public partial class Parser {
         PrefixParseFunctions.Add(TokenType.FUNCTION, ParseFunctionLiteral);
         PrefixParseFunctions.Add(TokenType.STRING, ParseStringLiteral);
         PrefixParseFunctions.Add(TokenType.LBRACKET, ParseArrayLiteral);
+        PrefixParseFunctions.Add(TokenType.LBRACE, ParseHashLiteral);
         
         InfixParseFunctions.Add(TokenType.PLUS, ParseInfixExpression);
         InfixParseFunctions.Add(TokenType.MINUS, ParseInfixExpression);

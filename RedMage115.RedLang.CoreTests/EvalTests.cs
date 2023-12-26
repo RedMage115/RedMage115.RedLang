@@ -482,4 +482,60 @@ public class EvalTests {
         _testOutputHelper.WriteLine($"Expected: NULL, got: {eval.GetObjectType()}");
         Assert.IsType<Null>(eval);
     }
+    
+    [Fact]
+    private void TestHashLiteralEval() {
+        var input = """
+                    let two = "two";
+                    {
+                    "one": 10 - 9,
+                    two: 1 + 1,
+                    "thr" + "ee": 6 / 2,
+                    4: 4,
+                    true: 5,
+                    false: 6
+                    }
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        if (eval is Error error) {
+            _testOutputHelper.WriteLine($"Error: {error.Message}");
+        }
+
+        _testOutputHelper.WriteLine($"Expected: Hash, got: {eval.GetObjectType()}");
+        _testOutputHelper.WriteLine($"Hash: {eval.InspectObject()}");
+        Assert.IsNotType<Null>(eval);
+        Assert.IsType<Hash>(eval);
+        if (eval is Hash hash) {
+            Assert.Collection(hash.Pairs,
+                pair => {
+                    Assert.Equal("one", pair.Value.Key.InspectObject());
+                    Assert.Equal("1", pair.Value.Value.InspectObject());
+                },
+                pair => {
+                    Assert.Equal("two", pair.Value.Key.InspectObject());
+                    Assert.Equal("2", pair.Value.Value.InspectObject());
+                },
+                pair => {
+                    Assert.Equal("three", pair.Value.Key.InspectObject());
+                    Assert.Equal("3", pair.Value.Value.InspectObject());
+                },
+                pair => {
+                    Assert.Equal("4", pair.Value.Key.InspectObject());
+                    Assert.Equal("4", pair.Value.Value.InspectObject());
+                },
+                pair => {
+                    Assert.Equal("True", pair.Value.Key.InspectObject());
+                    Assert.Equal("5", pair.Value.Value.InspectObject());
+                },
+                pair => {
+                    Assert.Equal("False", pair.Value.Key.InspectObject());
+                    Assert.Equal("6", pair.Value.Value.InspectObject());
+                });
+        }
+        
+    }
 }

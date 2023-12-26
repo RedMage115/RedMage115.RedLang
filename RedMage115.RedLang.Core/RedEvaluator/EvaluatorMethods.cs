@@ -77,6 +77,8 @@ public static partial class Evaluator {
                         return index;
                     }
                     return EvalIndexExpression(left, index);
+                case HashLiteral hashLiteral:
+                    return EvalHashLiteral(hashLiteral, environment);
                     
             }
             return Null;
@@ -256,6 +258,28 @@ public static partial class Evaluator {
             return Null;
         }
         return left.Elements[(int)index];
+    }
+
+    private static Object EvalHashLiteral(HashLiteral hashLiteral, Environment environment) {
+        var pairs = new Dictionary<HashKey, HashPair>();
+        foreach (var hashLiteralPair in hashLiteral.Pairs) {
+            var key = Eval(hashLiteralPair.Key, environment);
+            if (IsError(key)) {
+                return key;
+            }
+            if (key is not Hashable hashable) {
+                return new Error($"unusable as hash key: {key.GetObjectType()}");
+            }
+            var value = Eval(hashLiteralPair.Value, environment);
+            if (IsError(key)) {
+                return value;
+            }
+
+            var keyHash = hashable.HashKey;
+            pairs.Add(keyHash, new HashPair(key, value));
+        }
+
+        return new Hash(pairs);
     }
     
     private static Object UnwrapReturnValue(Object returnObject) {
