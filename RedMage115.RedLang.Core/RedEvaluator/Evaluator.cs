@@ -13,6 +13,12 @@ public static partial class Evaluator {
     private static readonly Boolean True = new(true);
     private static readonly Boolean False = new(false);
     private static readonly Null Null = new();
-    private static Dictionary<string, Builtin> Builtins { get; } = new(){{"len", new Builtin(Len)}};
+    private static Dictionary<string, Builtin> Builtins { get; } = new() {
+        {"len", new Builtin(Len)},
+        {"first", new Builtin(First)},
+        {"last", new Builtin(Last)},
+        {"tail", new Builtin(Tail)},
+        {"push", new Builtin(Push)},
+    };
 
 }

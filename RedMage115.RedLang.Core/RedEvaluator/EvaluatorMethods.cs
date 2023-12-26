@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using RedMage115.RedLang.Core.RedAst;
 using RedMage115.RedLang.Core.RedObject;
+using Array = RedMage115.RedLang.Core.RedObject.Array;
 using Boolean = RedMage115.RedLang.Core.RedObject.Boolean;
 using Environment = RedMage115.RedLang.Core.RedObject.Environment;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
@@ -60,6 +61,23 @@ public static partial class Evaluator {
                     return ApplyFunction(callFunction, callArgs);
                 case StringLiteral stringLiteral:
                     return new String(stringLiteral.Value);
+                case ArrayLiteral arrayLiteral:
+                    var arrayElements = EvalExpressions(arrayLiteral.Elements, environment);
+                    if (arrayElements.Count == 1 && arrayElements.First() is Error) {
+                        return arrayElements.First();
+                    }
+                    return new Array(arrayElements);
+                case IndexExpression indexExpression:
+                    var left = Eval(indexExpression.Left, environment);
+                    if (left is Error) {
+                        return left;
+                    }
+                    var index = Eval(indexExpression.Index, environment);
+                    if (index is Error) {
+                        return index;
+                    }
+                    return EvalIndexExpression(left, index);
+                    
             }
             return Null;
     }
@@ -219,6 +237,27 @@ public static partial class Evaluator {
         return enclosedEnv;
     }
 
+    private static Object EvalIndexExpression(Object left, Object index) {
+        if (index is Integer integer) {
+            switch (left) {
+                case Array array:
+                    return EvalArrayIndexExpression(array, integer);
+                default:
+                    break;
+            }
+        }
+        return new Error($"index operator not supported for {left.GetObjectType()}[{index.GetObjectType()}]");
+    }
+
+    private static Object EvalArrayIndexExpression(Array left, Integer indexInteger) {
+        var index = indexInteger.Value;
+        var max = left.Elements.Count - 1L;
+        if (index < 0 || index > max) {
+            return Null;
+        }
+        return left.Elements[(int)index];
+    }
+    
     private static Object UnwrapReturnValue(Object returnObject) {
         if (returnObject is ReturnValue returnValue) {
             return returnValue.Value;

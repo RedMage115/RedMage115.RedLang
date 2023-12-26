@@ -4,9 +4,11 @@ using RedMage115.RedLang.Core.RedLexer;
 using RedMage115.RedLang.Core.RedObject;
 using RedMage115.RedLang.Core.RedParser;
 using Xunit.Abstractions;
+using Array = RedMage115.RedLang.Core.RedObject.Array;
 using Boolean = RedMage115.RedLang.Core.RedObject.Boolean;
 using Environment = RedMage115.RedLang.Core.RedObject.Environment;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
+using String = RedMage115.RedLang.Core.RedObject.String;
 
 namespace RedMage115.RedLang.CoreTests;
 
@@ -350,6 +352,18 @@ public class EvalTests {
             ("""len("Hello", "World");""", new Error()),
             ("""len(1);""", new Error()),
             ("""len(true);""", new Error()),
+            ("""len([1,2]);""", new Integer(2)),
+            ("""first([1,2]);""", new Integer(1)),
+            ("""first([]);""", new Error()),
+            ("""last([1,2]);""", new Integer(2)),
+            ("""last([]);""", new Error()),
+            ("""first(["one","two"]);""", new String("one")),
+            ("""last(["one","two"]);""", new String("two")),
+            ("""tail(["one","two","three"]);""", new Array([new String("two"), new String("three")])),
+            ("""tail([1,2,3]);""", new Array([new Integer(2), new Integer(3)])),
+            ("""push([1,2,3], 4);""", new Array([new Integer(1), new Integer(2), new Integer(3), new Integer(4)])),
+            ("""push(["one","two","three"], "four");""", new Array([new String("one"), new String("two"), new String("three"), new String("four")])),
+            
         };
         foreach (var input in inputs) {
             var parser = new Parser(new Lexer(input.input));
@@ -367,8 +381,105 @@ public class EvalTests {
                 _testOutputHelper.WriteLine($"Expected: {expectedInteger.Value}, got: {integer.Value}");
                 Assert.Equal(expectedInteger, integer);
             }
+            if (eval is String str && input.expected is String expectedStr) {
+                _testOutputHelper.WriteLine($"Expected: {expectedStr.Value}, got: {str.Value}");
+                Assert.Equal(expectedStr.Value, str.Value);
+            }
+            if (eval is Array array && input.expected is Array expectedArray) {
+                for (var i = 0; i < array.Elements.Count; i++) {
+                    _testOutputHelper.WriteLine($"Expected: {array.Elements[i].InspectObject()}, got: {expectedArray.Elements[i].InspectObject()}");
+                    Assert.Equal(expectedArray.Elements[i], array.Elements[i]);
+                }
+            }
         }
-        
-        
+    }
+    [Fact]
+    private void TestArrayEval() {
+        var input = """
+                    [1,2*2,3+3] 
+                    """;
+        var expected = new List<Integer>() {
+            new (1),
+            new (4),
+            new (6),
+        };
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        if (eval is Error error) {
+            _testOutputHelper.WriteLine($"Error: {error.Message}");
+        }
+        Assert.IsType<Array>(eval);
+        if (eval is Array array) {
+            for (int i = 0; i < expected.Count; i++) {
+                if (array.Elements[i] is Integer actualInteger) {
+                    _testOutputHelper.WriteLine($"Expected: {expected[i].Value}, got: {actualInteger.Value}");
+                    Assert.Equal(expected[i].Value, actualInteger.Value);
+                }
+                else {
+                    Assert.Fail($"Array[{i}] was not an Integer, got: {array.Elements[i].GetObjectType()}");
+                }
+            }
+        }
+    }
+    [Fact]
+    private void TestArrayIndexEval() {
+        var input = """
+                    [1,2*2,3+3][0]
+                    """;
+        var expected = new List<Integer>() {
+            new (1),
+        };
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        if (eval is Error error) {
+            _testOutputHelper.WriteLine($"Error: {error.Message}");
+        }
+        Assert.IsType<Integer>(eval);
+        if (eval is Integer integer) {
+            _testOutputHelper.WriteLine($"Expected: {expected[0].Value}, got: {integer.Value}");
+            Assert.Equal(expected[0].Value, integer.Value);
+        }
+    }
+    
+    [Fact]
+    private void TestArrayIndexOutOfBoundsEval() {
+        var input = """
+                    [1,2*2,3+3][3]
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        if (eval is Error error) {
+            _testOutputHelper.WriteLine($"Error: {error.Message}");
+        }
+
+        _testOutputHelper.WriteLine($"Expected: NULL, got: {eval.GetObjectType()}");
+        Assert.IsType<Null>(eval);
+    }
+    
+    [Fact]
+    private void TestArrayIndexOutOfBoundsNegativeEval() {
+        var input = """
+                    [1,2*2,3+3][-1]
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        Assert.NotNull(program);
+        var env = new Environment();
+        var eval = Evaluator.Eval(program, env);
+        if (eval is Error error) {
+            _testOutputHelper.WriteLine($"Error: {error.Message}");
+        }
+
+        _testOutputHelper.WriteLine($"Expected: NULL, got: {eval.GetObjectType()}");
+        Assert.IsType<Null>(eval);
     }
 }

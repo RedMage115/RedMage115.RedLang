@@ -54,11 +54,17 @@ public partial class Parser {
         return new IntegerLiteral(CurrentToken, value);
     }
 
-    private Expression? ParseStringLiteral() {
+    private Expression ParseStringLiteral() {
         if (LogLevel > 0) {
             Debug.WriteLine("PARSE STRING LITERAL");
         }
         return new StringLiteral(CurrentToken, CurrentToken.Literal);
+    }
+
+    private Expression ParseArrayLiteral() {
+        var token = CurrentToken;
+        var elements = ParseExpressionList(TokenType.RBRACKET);
+        return new ArrayLiteral(token, elements);
     }
 
     private Expression? ParsePrefixExpression() {
@@ -188,13 +194,14 @@ public partial class Parser {
 
     private Expression ParseCallExpression(Expression function) {
         var token = CurrentToken;
-        var args = ParseCallArguments();
+        var args = ParseExpressionList(TokenType.RPAREN);
         return new CallExpression(token, function, args);
     }
     
-    private List<Expression>? ParseCallArguments() {
+    
+    private List<Expression>? ParseExpressionList(TokenType endToken) {
         var argList = new List<Expression>();
-        if (PeekTokenIs(TokenType.RPAREN)) {
+        if (PeekTokenIs(endToken)) {
             NextToken();
             return argList;
         }
@@ -212,10 +219,24 @@ public partial class Parser {
             }
             argList.Add(nextExpression);
         }
-        if (!ExpectPeek(TokenType.RPAREN)) {
+        if (!ExpectPeek(endToken)) {
             return null;
         }
         return argList;
+    }
+
+    private Expression? ParseIndexExpression(Expression left) {
+        var token = CurrentToken;
+        NextToken();
+        var index = ParseExpression(Precedence.LOWEST);
+        if (index is null) {
+            return null;
+        }
+        if (!ExpectPeek(TokenType.RBRACKET)) {
+            return null;
+        }
+
+        return new IndexExpression(token, left, index);
     }
 
 }

@@ -8,5 +8,6 @@ public enum Precedence {
     SUM,
     PRODUCT,
     PREFIX,
-    CALL
+    CALL,
+    INDEX
 }

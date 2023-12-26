@@ -84,6 +84,12 @@ public partial class Lexer {
             case '}':
                 token = new Token(TokenType.RBRACE, Ch);
                 break;
+            case '[':
+                token = new Token(TokenType.LBRACKET, Ch);
+                break;
+            case ']':
+                token = new Token(TokenType.RBRACKET, Ch);
+                break;
             case '"':
                 token = new Token(TokenType.STRING, ReadString());
                 break;

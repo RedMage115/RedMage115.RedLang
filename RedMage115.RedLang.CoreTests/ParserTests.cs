@@ -292,4 +292,34 @@ public class ParserTests {
         Assert.NotNull(program);
         ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
     }
+    
+    [Fact]
+    private void TestArrayExpression() {
+        var input = """
+                    [1, 2, "aa", 2+2]
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        _testOutputHelper.WriteLine($"Full AST: {program.GetNodeTypeString()}");
+        foreach (var statement in program.Statements) {
+            _testOutputHelper.WriteLine($"Raw: {statement.GetRawStatement()}");
+        }
+        Assert.NotNull(program);
+        ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
+    }
+    
+    [Fact]
+    private void TestArrayIndexExpression() {
+        var input = """
+                    myArray[1+1]
+                    """;
+        var parser = new Parser(new Lexer(input));
+        var program = parser.ParseProgram();
+        _testOutputHelper.WriteLine($"Full AST: {program.GetNodeTypeString()}");
+        foreach (var statement in program.Statements) {
+            _testOutputHelper.WriteLine($"Raw: {statement.GetRawStatement()}");
+        }
+        Assert.NotNull(program);
+        ParserErrorTests.TestParserErrors(_testOutputHelper, parser, 0);
+    }
 }

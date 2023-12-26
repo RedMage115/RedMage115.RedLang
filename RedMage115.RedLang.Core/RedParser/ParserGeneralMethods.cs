@@ -35,6 +35,7 @@ public partial class Parser {
         PrefixParseFunctions.Add(TokenType.IF, ParseIfExpression);
         PrefixParseFunctions.Add(TokenType.FUNCTION, ParseFunctionLiteral);
         PrefixParseFunctions.Add(TokenType.STRING, ParseStringLiteral);
+        PrefixParseFunctions.Add(TokenType.LBRACKET, ParseArrayLiteral);
         
         InfixParseFunctions.Add(TokenType.PLUS, ParseInfixExpression);
         InfixParseFunctions.Add(TokenType.MINUS, ParseInfixExpression);
@@ -45,6 +46,7 @@ public partial class Parser {
         InfixParseFunctions.Add(TokenType.LT, ParseInfixExpression);
         InfixParseFunctions.Add(TokenType.GT, ParseInfixExpression);
         InfixParseFunctions.Add(TokenType.LPAREN, ParseCallExpression);
+        InfixParseFunctions.Add(TokenType.LBRACKET, ParseIndexExpression);
     }
     
     private void PeekError(TokenType tokenType) {

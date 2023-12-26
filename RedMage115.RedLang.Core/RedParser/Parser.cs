@@ -23,6 +23,7 @@ public partial class Parser {
         { TokenType.SLASH, Precedence.PRODUCT },
         { TokenType.ASTRIX, Precedence.PRODUCT },
         { TokenType.LPAREN, Precedence.CALL },
+        { TokenType.LBRACKET, Precedence.INDEX },
     };
 
     public Parser(Lexer lexer, LogLevel logLevel = LogLevel.NONE) {
