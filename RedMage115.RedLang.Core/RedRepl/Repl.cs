@@ -1,7 +1,9 @@
-﻿using RedMage115.RedLang.Core.RedEvaluator;
+﻿using RedMage115.RedLang.Core.RedCompiler;
+using RedMage115.RedLang.Core.RedEvaluator;
 using RedMage115.RedLang.Core.RedLexer;
 using RedMage115.RedLang.Core.RedParser;
 using RedMage115.RedLang.Core.RedToken;
+using RedMage115.RedLang.Core.RedVm;
 using Environment = RedMage115.RedLang.Core.RedObject.Environment;
 
 namespace RedMage115.RedLang.Core.RedRepl;
@@ -113,8 +115,15 @@ public static class Repl {
                 foreach (var error in parser.Errors) {
                     Console.WriteLine($"ERROR: {error}");
                 }
-
-                Console.WriteLine(Evaluator.Eval(program,environment).InspectObject());
+                var compiler = new Compiler();
+                compiler.Compile(program);
+                var byteCode = compiler.ByteCode();
+                var vm = new VirtualMachine(byteCode);
+                vm.Run();
+                var top = vm.StackTop();
+                Console.WriteLine(top is null
+                    ? "NULL"
+                    : top.InspectObject());
             }
         }
     }

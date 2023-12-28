@@ -12,7 +12,8 @@ public class ByteCodeTests {
     [Fact]
     private void TestMake() {
         var tests = new List<TestCase>() {
-            new TestCase(OpCode.GetCodeFromType(OpCodeType.OP_CONSTANT), new List<int>(1){65534}, new List<byte>(){OpCode.GetCodeFromType(OpCodeType.OP_CONSTANT), 255, 254})
+            new TestCase(OpCode.OP_CONSTANT, new List<int>(1){65534}, new List<byte>(){OpCode.OP_CONSTANT, 255, 254}),
+            new TestCase(OpCode.OP_ADD, new List<int>(0){}, new List<byte>(){OpCode.OP_ADD})
         };
         foreach (var testCase in tests) {
             var instruction = OpCode.Make(testCase.OpCode, testCase.Operands);

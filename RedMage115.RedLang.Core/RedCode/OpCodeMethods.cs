@@ -3,20 +3,14 @@
 namespace RedMage115.RedLang.Core.RedCode;
 
 public partial class OpCode {
-    private const byte OP_CONSTANT = 0000;
-    
-    public static byte GetCodeFromType(OpCodeType codeType) {
-        return codeType switch {
-            OpCodeType.OP_CONSTANT => OP_CONSTANT,
-            _ => throw new ArgumentOutOfRangeException(nameof(codeType), codeType, null)
-        };
-    }
-    
-    public static OpCodeType GetTypeFromCode(byte opCode) {
-        return opCode switch {
-            0 => OpCodeType.OP_CONSTANT,
-            _ => throw new ArgumentOutOfRangeException(nameof(opCode), opCode, null)
-        };
+    public const byte OP_CONSTANT = 0;
+    public const byte OP_ADD = 1;
+
+
+    public static string OpCodeToString(List<byte> opcode) {
+        var op = opcode.First();
+        var inst = opcode[1..].Aggregate("[", (s, b) => s += b.ToString()) + "]";
+        return $"[{op}]{inst}";
     }
 
     public static List<byte> Make(byte opCode, List<int> operands) {
