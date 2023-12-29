@@ -6,6 +6,8 @@ public partial class Compiler {
     private List<byte> Instructions { get; }
     private List<Object> Constants { get; }
 
+    public List<string> Errors = [];
+
     public Compiler() {
         Instructions = [];
         Constants = [];

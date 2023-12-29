@@ -6,6 +6,16 @@ public partial class Definition {
     private static Dictionary<byte, Definition> _definitionMap = new() {
         { OpCode.OP_CONSTANT, new Definition("OpConstant", [2])},
         { OpCode.OP_ADD, new Definition("OpAdd", [])},
+        { OpCode.OP_POP, new Definition("OpPop", [])},
+        { OpCode.OP_SUB, new Definition("OpSub", [])},
+        { OpCode.OP_MUL, new Definition("OpMul", [])},
+        { OpCode.OP_DIV, new Definition("OpDiv", [])},
+        { OpCode.OP_TRUE, new Definition("OpTrue", [])},
+        { OpCode.OP_FALSE, new Definition("OpFalse", [])},
+        { OpCode.OP_EQUAL, new Definition("OpEqual", [])},
+        { OpCode.OP_NOT_EQUAL, new Definition("OpNotEqual", [])},
+        { OpCode.OP_GREATER_THAN, new Definition("OpGreaterThan", [])},
+        { OpCode.OP_LESS_THAN, new Definition("OpLessThan", [])},
     };
 
     public static Definition? Lookup(byte opCode) {

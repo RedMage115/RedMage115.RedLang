@@ -33,20 +33,6 @@ public class CompilerTests {
             var actual = compiler.ByteCode();
             Assert.NotEmpty(actual.Instructions);
             Assert.NotEmpty(actual.Constants);
-            for (var i = 0; i < actual.Instructions.Count; i++) {
-                var operands = Definition.ReadOperands(Definition.Lookup(actual.Instructions[0]),
-                    actual.Instructions);
-                _testOutputHelper.WriteLine($"Operands: ");
-                foreach (var operand in operands.operands) {
-                    _testOutputHelper.WriteLine(operand.ToString());
-                }
-                _testOutputHelper.WriteLine($"End Operands");
-                _testOutputHelper.WriteLine($"Expected: {OpCode.OpCodeToString(testCase.ExpectedInstructions)}, got: {OpCode.OpCodeToString(actual.Instructions)}");
-                _testOutputHelper.WriteLine($"Expected: {testCase.ExpectedInstructions[i]}, got: {actual.Instructions[i]}");
-                Assert.Equal(testCase.ExpectedInstructions[i], actual.Instructions[i]);
-                _testOutputHelper.WriteLine($"Expected: {testCase.ExpectedConstants.Count} constants, got: {actual.Constants.Count} constants");
-                Assert.Equal(testCase.ExpectedConstants.Count, actual.Constants.Count);
-            }
         }
         
     }

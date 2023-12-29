@@ -2,6 +2,7 @@
 using RedMage115.RedLang.Core.RedCompiler;
 using RedMage115.RedLang.Core.RedLexer;
 using RedMage115.RedLang.Core.RedParser;
+using Boolean = RedMage115.RedLang.Core.RedObject.Boolean;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
 
 namespace RedMage115.RedLang.Core.RedVm;
@@ -16,6 +17,10 @@ public partial class VirtualMachine {
 
     private const int StackSize = 2048;
 
+    private readonly Boolean True = new(true);
+    private readonly Boolean False = new(false);
+    
+    
     public VirtualMachine(List<Object> constants, List<byte> instructions) {
         Constants = constants;
         Instructions = instructions;

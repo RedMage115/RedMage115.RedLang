@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Intrinsics.X86;
 using RedMage115.RedLang.Core.RedCode;
 using RedMage115.RedLang.Core.RedObject;
+using Boolean = RedMage115.RedLang.Core.RedObject.Boolean;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
 
 namespace RedMage115.RedLang.Core.RedVm;
@@ -21,12 +22,29 @@ public partial class VirtualMachine {
                         return false;
                     }
                     break;
-                case OpCode.OP_ADD:
-                    var right = Pop();
-                    var left = Pop();
-                    if (right is Integer rightInteger && left is Integer leftInteger) {
-                        var result = rightInteger.Value + leftInteger.Value;
-                        Push(new Integer(result));
+                case OpCode.OP_ADD or OpCode.OP_SUB or OpCode.OP_MUL or OpCode.OP_DIV:
+                    var resultBin = ExecuteBinaryOperation(op);
+                    if (!resultBin) {
+                        return false;
+                    }
+                    break;
+                case OpCode.OP_POP:
+                    Pop();
+                    break;
+                case OpCode.OP_TRUE:
+                    if (!Push(True)) {
+                        return false;
+                    }
+                    break;
+                case OpCode.OP_FALSE:
+                    if (!Push(False)) {
+                        return false;
+                    }
+                    break;
+                case OpCode.OP_EQUAL or OpCode.OP_NOT_EQUAL or OpCode.OP_LESS_THAN or OpCode.OP_GREATER_THAN:
+                    var resultComp = ExecuteCompareOperation(op);
+                    if (!resultComp) {
+                        return false;
                     }
                     break;
             }
@@ -48,5 +66,56 @@ public partial class VirtualMachine {
         var obj = Stack[StackPointer - 1];
         StackPointer--;
         return obj;
+    }
+
+    public Object GetLastPopped() {
+        var obj = Stack[StackPointer];
+        return obj;
+    }
+
+    private bool ExecuteBinaryOperation(byte opCode) {
+        var right = Pop();
+        var left = Pop();
+        if (left is Integer leftInteger && right is Integer rightInteger) {
+            try {
+                var result = opCode switch {
+                    OpCode.OP_ADD => leftInteger.Value + rightInteger.Value,
+                    OpCode.OP_SUB => leftInteger.Value - rightInteger.Value,
+                    OpCode.OP_MUL => leftInteger.Value * rightInteger.Value,
+                    OpCode.OP_DIV => leftInteger.Value / rightInteger.Value,
+                    _ => throw new ArgumentOutOfRangeException(nameof(opCode), opCode, null)
+                };
+                Push(new Integer(result));
+            }
+            catch (Exception e) {
+                Console.WriteLine(e);
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+    
+    private bool ExecuteCompareOperation(byte opCode) {
+        var right = Pop();
+        var left = Pop();
+        if (left is Integer leftInteger && right is Integer rightInteger) {
+            try {
+                var result = opCode switch {
+                    OpCode.OP_EQUAL => leftInteger.Value == rightInteger.Value,
+                    OpCode.OP_NOT_EQUAL => leftInteger.Value != rightInteger.Value,
+                    OpCode.OP_LESS_THAN => leftInteger.Value < rightInteger.Value,
+                    OpCode.OP_GREATER_THAN => leftInteger.Value > rightInteger.Value,
+                    _ => throw new ArgumentOutOfRangeException(nameof(opCode), opCode, null)
+                };
+                Push(new Boolean(result));
+            }
+            catch (Exception e) {
+                Console.WriteLine(e);
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 }
