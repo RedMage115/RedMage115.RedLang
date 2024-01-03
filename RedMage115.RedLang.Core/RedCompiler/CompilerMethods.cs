@@ -62,6 +62,20 @@ public partial class Compiler {
                         return false;
                 }
                 break;
+            case PrefixExpression prefixExpression:
+                if (!Compile(prefixExpression.Right)) {
+                    return false;
+                }
+
+                switch (prefixExpression.Operator) {
+                    case "!":
+                        Emit(OpCode.OP_BANG, []);
+                        break;
+                    case "-":
+                        Emit(OpCode.OP_MINUS, []);
+                        break;
+                }
+                break;
             case IntegerLiteral integerLiteral:
                 var integer = new Integer(integerLiteral.Value);
                 Emit(OpCode.OP_CONSTANT, [AddConstant(integer)]);

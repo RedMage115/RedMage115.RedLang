@@ -47,6 +47,18 @@ public partial class VirtualMachine {
                         return false;
                     }
                     break;
+                case OpCode.OP_BANG:
+                    var resultBang = ExecuteBangOperator();
+                    if (!resultBang) {
+                        return false;
+                    }
+                    break;
+                case OpCode.OP_MINUS:
+                    var resultMinus = ExecuteMinusOperator();
+                    if (!resultMinus) {
+                        return false;
+                    }
+                    break;
             }
         }
 
@@ -116,6 +128,58 @@ public partial class VirtualMachine {
             }
             return true;
         }
+        else if (left is Boolean leftBoolean && right is Boolean rightBoolean) {
+            try {
+                var result = opCode switch {
+                    OpCode.OP_EQUAL => leftBoolean.Value == rightBoolean.Value,
+                    OpCode.OP_NOT_EQUAL => leftBoolean.Value != rightBoolean.Value,
+                    _ => throw new ArgumentOutOfRangeException(nameof(opCode), opCode, null)
+                };
+                switch (result) {
+                    case true:
+                        Push(True);
+                        break;
+                    case false:
+                        Push(False);
+                        break;
+                }
+            }
+            catch (Exception e) {
+                Console.WriteLine(e);
+                return false;
+            }
+            return true;
+        }
         return false;
+    }
+
+    private bool ExecuteBangOperator() {
+        var operand = Pop();
+        if (operand is Boolean boolean) {
+            switch (boolean.Value) {
+                case true:
+                    Push(False);
+                    break;
+                case false:
+                    Push(True);
+                    break;
+            }
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    
+    private bool ExecuteMinusOperator() {
+        var operand = Pop();
+        if (operand is Integer integer) {
+            var value = integer.Value;
+            Push(new Integer(-value));
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }

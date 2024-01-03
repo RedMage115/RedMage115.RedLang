@@ -120,7 +120,7 @@ public static class Repl {
                 var byteCode = compiler.ByteCode();
                 var vm = new VirtualMachine(byteCode);
                 vm.Run();
-                var top = vm.StackTop();
+                var top = vm.GetLastPopped();
                 Console.WriteLine(top is null
                     ? "NULL"
                     : top.InspectObject());

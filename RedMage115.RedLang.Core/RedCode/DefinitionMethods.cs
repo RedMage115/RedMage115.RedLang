@@ -16,6 +16,8 @@ public partial class Definition {
         { OpCode.OP_NOT_EQUAL, new Definition("OpNotEqual", [])},
         { OpCode.OP_GREATER_THAN, new Definition("OpGreaterThan", [])},
         { OpCode.OP_LESS_THAN, new Definition("OpLessThan", [])},
+        { OpCode.OP_MINUS, new Definition("OpMinus", [])},
+        { OpCode.OP_BANG, new Definition("OpBang", [])},
     };
 
     public static Definition? Lookup(byte opCode) {
