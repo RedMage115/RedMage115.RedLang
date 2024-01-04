@@ -574,14 +574,11 @@ public class VirtualMachineTests {
     }
     
     [Fact]
-    private void TestIfStatementFalseNull() {
+    private void TestLetStatement() {
         var tests = new List<TestCase>() {
-            new TestCase("if(null){10}", 
-                new List<Object>(){new Boolean(false)},
+            new TestCase("let x = 10; x", 
+                new List<Object>(){},
                 new List<List<byte>>() {
-                    OpCode.Make(OpCode.OP_CONSTANT, [0]),
-                    OpCode.Make(OpCode.OP_MINUS, []),
-                    OpCode.Make(OpCode.OP_POP, []),
                 }
             )
         };
@@ -601,12 +598,55 @@ public class VirtualMachineTests {
             foreach (var obj in vm.Stack[..vm.StackPointer]) {
                 _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
             }
-            _testOutputHelper.WriteLine($"Expected NULL, got: {vm.GetLastPopped().InspectObject()}");
-            Assert.IsType<Null>(vm.GetLastPopped());
+            const int expected = 10;
+            _testOutputHelper.WriteLine($"Expected {expected}, got: {vm.GetLastPopped().InspectObject()}");
+            var lastPopped = vm.GetLastPopped();
             
+            if (lastPopped is Integer integer) {
+                Assert.Equal(expected, integer.Value);
+            }
+
         }
         
     }
+    
+    [Fact]
+    private void TestLetStatementMultiple() {
+        var tests = new List<TestCase>() {
+            new TestCase("let x = 10; let y = 11; let z = x + y; z", 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            const int expected = 21;
+            _testOutputHelper.WriteLine($"Expected {expected}, got: {vm.GetLastPopped().InspectObject()}");
+            var lastPopped = vm.GetLastPopped();
+            
+            if (lastPopped is Integer integer) {
+                Assert.Equal(expected, integer.Value);
+            }
+
+        }
+        
+    }
+    
 
     private Program GetProgram(string input) {
         var lexer = new Lexer(input);

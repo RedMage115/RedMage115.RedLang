@@ -60,13 +60,11 @@ public partial class VirtualMachine {
                     }
                     break;
                 case OpCode.OP_JUMP:
-                    var x = ip + 1;
-                    var jmpPos = (int)Definition.ReadUint16(Instructions[x..]);
+                    var jmpPos = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
                     ip = jmpPos - 1;
                     break;
                 case OpCode.OP_JUMP_NOT_TRUE:
-                    var y = ip + 1;
-                    var jntPos = (int)Definition.ReadUint16(Instructions[y..]);
+                    var jntPos = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
                     ip += 2;
                     var jntCondition = Pop();
                     if (!IsTrue(jntCondition)) {
@@ -75,6 +73,16 @@ public partial class VirtualMachine {
                     break;
                 case OpCode.OP_NULL:
                     Push(Null);
+                    break;
+                case OpCode.OP_SET_GLOBAL:
+                    var globalIndexSet = Definition.ReadUint16(Instructions[(ip + 1)..]);
+                    ip += 2;
+                    Globals[globalIndexSet] = Pop();
+                    break;
+                case OpCode.OP_GET_GLOBAL:
+                    var globalIndexGet = Definition.ReadUint16(Instructions[(ip + 1)..]);
+                    ip += 2;
+                    Push(Globals[globalIndexGet]);
                     break;
             }
         }

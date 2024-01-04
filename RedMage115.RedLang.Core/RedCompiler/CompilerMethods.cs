@@ -120,6 +120,22 @@ public partial class Compiler {
                     }
                 }
                 break;
+            case LetStatement letStatement:
+                if (letStatement.Value is null) {
+                    return false;
+                }
+                if (!Compile(letStatement.Value)) {
+                    return false;
+                }
+                var letSymbol = SymbolTable.Define(letStatement.Name.Value);
+                Emit(OpCode.OP_SET_GLOBAL, [letSymbol.Index]);
+                break;
+            case Identifier identifier:
+                if (!SymbolTable.Resolve(identifier.Value, out var identSymbol)) {
+                    return false;
+                }
+                Emit(OpCode.OP_GET_GLOBAL, [identSymbol.Index]);
+                break;
         }
 
         return true;

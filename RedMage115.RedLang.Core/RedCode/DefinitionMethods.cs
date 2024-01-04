@@ -21,6 +21,8 @@ public partial class Definition {
         { OpCode.OP_JUMP_NOT_TRUE, new Definition("OpJumpNotTrue", [2])},
         { OpCode.OP_JUMP, new Definition("OpJump", [2])},
         { OpCode.OP_NULL, new Definition("OpNull", [])},
+        { OpCode.OP_GET_GLOBAL, new Definition("OpGetGlobal", [2])},
+        { OpCode.OP_SET_GLOBAL, new Definition("OpSetGlobal", [2])},
     };
 
     public static Definition? Lookup(byte opCode) {

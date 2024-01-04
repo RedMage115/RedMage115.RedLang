@@ -14,9 +14,11 @@ public partial class VirtualMachine {
     public List<byte> Instructions { get; set; }
 
     public Object[] Stack { get; set; }
+    public Object[] Globals { get; set; }
     public int StackPointer { get; set; }
 
     private const int StackSize = 2048;
+    private const int GlobalsSize = 65536;
 
     private readonly Boolean True = new(true);
     private readonly Boolean False = new(false);
@@ -27,6 +29,7 @@ public partial class VirtualMachine {
         Constants = constants;
         Instructions = instructions;
         Stack = new Object[StackSize];
+        Globals = new Object[GlobalsSize];
         StackPointer = 0;
     }
     
@@ -34,6 +37,15 @@ public partial class VirtualMachine {
         Constants = byteCode.Constants;
         Instructions = byteCode.Instructions;
         Stack = new Object[StackSize];
+        Globals = new Object[GlobalsSize];
+        StackPointer = 0;
+    }
+    
+    public VirtualMachine(ByteCode byteCode, Object[] globals) {
+        Constants = byteCode.Constants;
+        Instructions = byteCode.Instructions;
+        Stack = new Object[StackSize];
+        Globals = globals;
         StackPointer = 0;
     }
     

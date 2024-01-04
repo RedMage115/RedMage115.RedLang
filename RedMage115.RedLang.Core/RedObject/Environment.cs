@@ -1,4 +1,6 @@
-﻿namespace RedMage115.RedLang.Core.RedObject;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace RedMage115.RedLang.Core.RedObject;
 
 public class Environment {
     public Dictionary<string, Object> Store { get; } = [];
@@ -13,7 +15,7 @@ public class Environment {
     }
 
 
-    public bool TryGetValue(string name, out Object? result) {
+    public bool TryGetValue(string name, [MaybeNullWhen(false)]out Object result) {
         if (Store.TryGetValue(name, out var value)) {
             result = value;
             return true;

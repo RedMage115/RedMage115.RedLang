@@ -5,6 +5,7 @@ using RedMage115.RedLang.Core.RedParser;
 using RedMage115.RedLang.Core.RedToken;
 using RedMage115.RedLang.Core.RedVm;
 using Environment = RedMage115.RedLang.Core.RedObject.Environment;
+using Object = RedMage115.RedLang.Core.RedObject.Object;
 
 namespace RedMage115.RedLang.Core.RedRepl;
 
@@ -102,6 +103,8 @@ public static class Repl {
             }
         }
         else if (mode == ReplMode.Full) {
+            var symbolTable = new SymbolTable();
+            var globals = new Object[65536];
             while (true) {
                 Console.Write(Prompt);
                 var input = Console.ReadLine();
@@ -115,15 +118,17 @@ public static class Repl {
                 foreach (var error in parser.Errors) {
                     Console.WriteLine($"ERROR: {error}");
                 }
-                var compiler = new Compiler();
+                var compiler = new Compiler(symbolTable);
                 compiler.Compile(program);
                 var byteCode = compiler.ByteCode();
-                var vm = new VirtualMachine(byteCode);
+                var vm = new VirtualMachine(byteCode, globals);
                 vm.Run();
                 var top = vm.GetLastPopped();
                 Console.WriteLine(top is null
                     ? "NULL"
                     : top.InspectObject());
+                symbolTable = compiler.SymbolTable;
+                globals = vm.Globals;
             }
         }
     }

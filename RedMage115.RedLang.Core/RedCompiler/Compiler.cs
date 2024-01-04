@@ -7,6 +7,8 @@ public partial class Compiler {
     private List<byte> Instructions { get; set; }
     private List<Object> Constants { get; set; }
 
+    public SymbolTable SymbolTable { get; set; }
+
     private EmittedInstruction? LastInstruction { get; set; }
     private EmittedInstruction? PreviousInstruction { get; set; }
 
@@ -16,5 +18,12 @@ public partial class Compiler {
     public Compiler() {
         Instructions = [];
         Constants = [];
+        SymbolTable = new SymbolTable();
+    }
+    
+    public Compiler(SymbolTable symbolTable) {
+        Instructions = [];
+        Constants = [];
+        SymbolTable = symbolTable;
     }
 }
