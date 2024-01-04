@@ -21,8 +21,10 @@ public partial class Compiler {
                 if (ex is null) {
                     Errors.Add($"Failed to parse expression: expression is null");
                 }
-                if (!Compile(ex)) {
-                    Errors.Add($"Failed to parse expression: {ex}");
+                else {
+                    if (!Compile(ex)) {
+                        Errors.Add($"Failed to parse expression: {ex}");
+                    } 
                 }
                 Emit(OpCode.OP_POP, []);
                 break;
@@ -83,6 +85,41 @@ public partial class Compiler {
             case Boolean boolean:
                 Emit(boolean.Value ? OpCode.OP_TRUE : OpCode.OP_FALSE, []);
                 break;
+            case IfExpression ifExpression:
+                if (!Compile(ifExpression.Condition)) {
+                    return false;
+                }
+                var jntPos = Emit(OpCode.OP_JUMP_NOT_TRUE, [9999]);
+                if (!Compile(ifExpression.Consequence)) {
+                    return false;
+                }
+                if (LastInstructionIsPop()) {
+                    RemoveLastPop();
+                }
+                var jumpPos = Emit(OpCode.OP_JUMP, [9999]);
+                var afterConsequencePos = Instructions.Count;
+                ChangeOperand(jntPos, afterConsequencePos);
+                if (ifExpression.Alternative is null) {
+                    Emit(OpCode.OP_NULL, []);
+                }
+                else {
+                    if (!Compile(ifExpression.Alternative)) {
+                        return false;
+                    }
+                    if (LastInstructionIsPop()) {
+                        RemoveLastPop();
+                    }
+                }
+                var afterAltPos = Instructions.Count;
+                ChangeOperand(jumpPos, afterAltPos);
+                break;
+            case BlockStatement blockStatement:
+                foreach (var blkStatement in blockStatement.Statements) {
+                    if (!Compile(blkStatement)) {
+                        return false;
+                    }
+                }
+                break;
         }
 
         return true;
@@ -91,13 +128,45 @@ public partial class Compiler {
     private int Emit(byte opCode, List<int> operands) {
         var ins = OpCode.Make(opCode, operands);
         var pos = AddInstruction(ins);
+        SetLastInstruction(opCode ,pos);
         return pos;
     }
 
+    private void SetLastInstruction(byte opCode, int pos) {
+        var prev = LastInstruction;
+        var last = new EmittedInstruction(opCode, pos);
+        PreviousInstruction = prev;
+        LastInstruction = last;
+    }
+    
     private int AddInstruction(IEnumerable<byte> instructions) {
         var pos = Instructions.Count;
         Instructions.AddRange(instructions);
         return pos;
+    }
+
+    private bool LastInstructionIsPop() {
+        return LastInstruction?.Opcode == OpCode.OP_POP;
+    }
+
+    private void ReplaceInstruction(int position, List<byte> newInstruction) {
+        for (var i = 0; i < newInstruction.Count; i++) {
+            Instructions[position + i] = newInstruction[i];
+        }
+    }
+
+    private void ChangeOperand(int position, int operand) {
+        var op = Instructions[position];
+        var newInst = OpCode.Make(op, [operand]);
+        ReplaceInstruction(position, newInst);
+    }
+
+    private void RemoveLastPop() {
+        if (LastInstruction is null) {
+            return;
+        }
+        Instructions = Instructions[..LastInstruction.Position];
+        LastInstruction = PreviousInstruction;
     }
     
     private int AddConstant(Object constant) {

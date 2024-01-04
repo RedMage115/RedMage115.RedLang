@@ -37,6 +37,39 @@ public class CompilerTests {
         
     }
     
+    [Fact]
+    private void TestIfStatement() {
+        var tests = new List<TestCase>() {
+            new TestCase("if(1<2){10}",
+                [new Integer(1), new Integer(2), new Integer(10)],
+                [
+                    OpCode.Make(OpCode.OP_CONSTANT, new List<int>() { 0 }),
+                    OpCode.Make(OpCode.OP_CONSTANT, new List<int>() { 1 }),
+                    OpCode.Make(OpCode.OP_ADD, new List<int>() {})
+                ])
+        };
+
+        foreach (var testCase in tests) {
+            var program = new Parser(new Lexer(testCase.Input)).ParseProgram();
+            var compiler = new Compiler();
+            compiler.Compile(program);
+            var actual = compiler.ByteCode();
+            Assert.NotEmpty(actual.Instructions);
+            Assert.NotEmpty(actual.Constants);
+            foreach (var instruction in actual.Instructions) {
+                var def = Definition.Lookup(instruction);
+                if (def is not null) {
+                    _testOutputHelper.WriteLine($"{def.Name} - {instruction}");
+                }
+            }
+
+            foreach (var constant in actual.Constants) {
+                _testOutputHelper.WriteLine(constant.InspectObject());
+            }
+        }
+        
+    }
+    
     private struct TestCase {
         internal string Input { get; set; }
         internal List<Object> ExpectedConstants { get; set; }

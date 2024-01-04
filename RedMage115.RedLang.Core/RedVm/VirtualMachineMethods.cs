@@ -59,6 +59,23 @@ public partial class VirtualMachine {
                         return false;
                     }
                     break;
+                case OpCode.OP_JUMP:
+                    var x = ip + 1;
+                    var jmpPos = (int)Definition.ReadUint16(Instructions[x..]);
+                    ip = jmpPos - 1;
+                    break;
+                case OpCode.OP_JUMP_NOT_TRUE:
+                    var y = ip + 1;
+                    var jntPos = (int)Definition.ReadUint16(Instructions[y..]);
+                    ip += 2;
+                    var jntCondition = Pop();
+                    if (!IsTrue(jntCondition)) {
+                        ip = jntPos - 1;
+                    }
+                    break;
+                case OpCode.OP_NULL:
+                    Push(Null);
+                    break;
             }
         }
 
@@ -75,6 +92,9 @@ public partial class VirtualMachine {
     }
 
     private Object Pop() {
+        if (StackPointer-1 < 0) {
+            return Null;
+        }
         var obj = Stack[StackPointer - 1];
         StackPointer--;
         return obj;
@@ -166,6 +186,9 @@ public partial class VirtualMachine {
             }
             return true;
         }
+        if (operand is Null @null) {
+            return Push(True);
+        }
         else {
             return false;
         }
@@ -181,5 +204,13 @@ public partial class VirtualMachine {
         else {
             return false;
         }
+    }
+
+    private bool IsTrue(Object obj) {
+        return obj switch {
+            Boolean boolean => boolean.Value,
+            Null @null => false, 
+            _ => true
+        };
     }
 }

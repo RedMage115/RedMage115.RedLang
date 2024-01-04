@@ -453,6 +453,160 @@ public class VirtualMachineTests {
         }
         
     }
+    
+    [Fact]
+    private void TestIfStatementTrue() {
+        var tests = new List<TestCase>() {
+            new TestCase("if(1<2){10}", 
+                new List<Object>(){new Boolean(false)},
+                new List<List<byte>>() {
+                    OpCode.Make(OpCode.OP_CONSTANT, [0]),
+                    OpCode.Make(OpCode.OP_MINUS, []),
+                    OpCode.Make(OpCode.OP_POP, []),
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            const int expectedResult = 10;
+            if (vm.GetLastPopped() is Integer integer) {
+                _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {integer.Value}");
+                Assert.Equal(expectedResult, integer.Value);
+                const int expectedSp = 0;
+                _testOutputHelper.WriteLine($"Stack Pointer Expected: {expectedSp}, got: {vm.StackPointer}");
+                Assert.Equal(expectedSp, vm.StackPointer);
+                
+            }
+            
+        }
+        
+    }
+    
+    [Fact]
+    private void TestIfStatementFalse() {
+        var tests = new List<TestCase>() {
+            new TestCase("if(1>2){10}else{11}", 
+                new List<Object>(){new Boolean(false)},
+                new List<List<byte>>() {
+                    OpCode.Make(OpCode.OP_CONSTANT, [0]),
+                    OpCode.Make(OpCode.OP_MINUS, []),
+                    OpCode.Make(OpCode.OP_POP, []),
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            const int expectedResult = 11;
+            if (vm.GetLastPopped() is Integer integer) {
+                _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {integer.Value}");
+                Assert.Equal(expectedResult, integer.Value);
+                const int expectedSp = 0;
+                _testOutputHelper.WriteLine($"Stack Pointer Expected: {expectedSp}, got: {vm.StackPointer}");
+                Assert.Equal(expectedSp, vm.StackPointer);
+                
+            }
+            
+        }
+        
+    }
+    
+    [Fact]
+    private void TestIfStatementFalseNoAlt() {
+        var tests = new List<TestCase>() {
+            new TestCase("if(1>2){10}", 
+                new List<Object>(){new Boolean(false)},
+                new List<List<byte>>() {
+                    OpCode.Make(OpCode.OP_CONSTANT, [0]),
+                    OpCode.Make(OpCode.OP_MINUS, []),
+                    OpCode.Make(OpCode.OP_POP, []),
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            _testOutputHelper.WriteLine($"Expected NULL, got: {vm.GetLastPopped().InspectObject()}");
+            Assert.IsType<Null>(vm.GetLastPopped());
+            
+        }
+        
+    }
+    
+    [Fact]
+    private void TestIfStatementFalseNull() {
+        var tests = new List<TestCase>() {
+            new TestCase("if(null){10}", 
+                new List<Object>(){new Boolean(false)},
+                new List<List<byte>>() {
+                    OpCode.Make(OpCode.OP_CONSTANT, [0]),
+                    OpCode.Make(OpCode.OP_MINUS, []),
+                    OpCode.Make(OpCode.OP_POP, []),
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            _testOutputHelper.WriteLine($"Expected NULL, got: {vm.GetLastPopped().InspectObject()}");
+            Assert.IsType<Null>(vm.GetLastPopped());
+            
+        }
+        
+    }
 
     private Program GetProgram(string input) {
         var lexer = new Lexer(input);

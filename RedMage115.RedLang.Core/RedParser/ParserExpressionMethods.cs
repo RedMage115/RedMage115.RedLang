@@ -64,7 +64,7 @@ public partial class Parser {
     private Expression ParseArrayLiteral() {
         var token = CurrentToken;
         var elements = ParseExpressionList(TokenType.RBRACKET);
-        return new ArrayLiteral(token, elements);
+        return new ArrayLiteral(token, elements ?? []);
     }
 
     private Expression? ParsePrefixExpression() {

@@ -17,6 +17,9 @@ public static class OpCode {
     public const byte OP_LESS_THAN = 11;
     public const byte OP_MINUS = 12;
     public const byte OP_BANG = 13;
+    public const byte OP_JUMP_NOT_TRUE = 14;
+    public const byte OP_JUMP = 15;
+    public const byte OP_NULL = 16;
 
 
     public static string OpCodeToString(List<byte> opcode) {
