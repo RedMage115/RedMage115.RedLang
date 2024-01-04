@@ -23,6 +23,9 @@ public partial class Definition {
         { OpCode.OP_NULL, new Definition("OpNull", [])},
         { OpCode.OP_GET_GLOBAL, new Definition("OpGetGlobal", [2])},
         { OpCode.OP_SET_GLOBAL, new Definition("OpSetGlobal", [2])},
+        { OpCode.OP_ARRAY, new Definition("OpArray", [2])},
+        { OpCode.OP_HASH, new Definition("OpHash", [2])},
+        { OpCode.OP_INDEX, new Definition("OpIndex", [])},
     };
 
     public static Definition? Lookup(byte opCode) {

@@ -22,6 +22,9 @@ public static class OpCode {
     public const byte OP_NULL = 16;
     public const byte OP_GET_GLOBAL = 17;
     public const byte OP_SET_GLOBAL = 18;
+    public const byte OP_ARRAY = 19;
+    public const byte OP_HASH = 20;
+    public const byte OP_INDEX = 21;
 
 
     public static string OpCodeToString(List<byte> opcode) {

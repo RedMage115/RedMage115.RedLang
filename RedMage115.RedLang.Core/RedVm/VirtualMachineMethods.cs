@@ -1,8 +1,10 @@
 ﻿using System.Runtime.Intrinsics.X86;
 using RedMage115.RedLang.Core.RedCode;
 using RedMage115.RedLang.Core.RedObject;
+using Array = RedMage115.RedLang.Core.RedObject.Array;
 using Boolean = RedMage115.RedLang.Core.RedObject.Boolean;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
+using String = RedMage115.RedLang.Core.RedObject.String;
 
 namespace RedMage115.RedLang.Core.RedVm;
 
@@ -75,14 +77,37 @@ public partial class VirtualMachine {
                     Push(Null);
                     break;
                 case OpCode.OP_SET_GLOBAL:
-                    var globalIndexSet = Definition.ReadUint16(Instructions[(ip + 1)..]);
+                    var globalIndexSet = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
                     ip += 2;
                     Globals[globalIndexSet] = Pop();
                     break;
                 case OpCode.OP_GET_GLOBAL:
-                    var globalIndexGet = Definition.ReadUint16(Instructions[(ip + 1)..]);
+                    var globalIndexGet = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
                     ip += 2;
                     Push(Globals[globalIndexGet]);
+                    break;
+                case OpCode.OP_ARRAY:
+                    var numOfArrayElements = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
+                    ip += 2;
+                    var array = BuildArray(StackPointer-numOfArrayElements, StackPointer);
+                    StackPointer -= numOfArrayElements;
+                    Push(array);
+                    break;
+                case OpCode.OP_HASH:
+                    var numOfHashElements = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
+                    ip += 2;
+                    var hash = BuildHash(StackPointer-numOfHashElements, StackPointer);
+                    StackPointer -= numOfHashElements;
+                    if (hash is not null) {
+                        Push(hash);
+                    }
+                    break;
+                case OpCode.OP_INDEX:
+                    var index = Pop();
+                    var left = Pop();
+                    if (!ExecuteIndexExpression(left, index)) {
+                        return false;
+                    }
                     break;
             }
         }
@@ -126,6 +151,20 @@ public partial class VirtualMachine {
                     _ => throw new ArgumentOutOfRangeException(nameof(opCode), opCode, null)
                 };
                 Push(new Integer(result));
+            }
+            catch (Exception e) {
+                Console.WriteLine(e);
+                return false;
+            }
+            return true;
+        }
+        if (left is String leftString && right is String rightString) {
+            try {
+                var result = opCode switch {
+                    OpCode.OP_ADD => leftString.Value + rightString.Value,
+                    _ => throw new ArgumentOutOfRangeException(nameof(opCode), opCode, null)
+                };
+                Push(new String(result));
             }
             catch (Exception e) {
                 Console.WriteLine(e);
@@ -212,6 +251,72 @@ public partial class VirtualMachine {
         else {
             return false;
         }
+    }
+
+    private Object BuildArray(int startIndex, int endIndex) {
+        var elements = new Object[endIndex - startIndex];
+        for (var i = startIndex; i < endIndex; i++) {
+            elements[i - startIndex] = Stack[i];
+        }
+        return new Array(elements.ToList());
+    }
+    
+    private Object? BuildHash(int startIndex, int endIndex) {
+        var hashedPairs = new Dictionary<HashKey, HashPair>();
+        for (var i = startIndex; i < endIndex; i+=2) {
+            var key = Stack[i];
+            var value = Stack[i+1];
+            var pair = new HashPair(key, value);
+            if (key is not Hashable hashableKey) {
+                return null;
+            }
+            hashedPairs.TryAdd(hashableKey.HashKey, pair);
+        }
+
+        return new Hash(hashedPairs);
+    }
+
+    private bool ExecuteIndexExpression(Object left, Object index) {
+        switch (left) {
+            case Array array:
+                if (index is Integer integer) {
+                    return ExecuteArrayIndex(array, integer);
+                }
+                break;
+            case Hash hash:
+                return ExecuteHashIndex(hash, index);
+        }
+
+        return false;
+    }
+
+    private bool ExecuteArrayIndex(Array array, Integer integer) {
+        var index = integer.Value;
+        var max = (long)array.Elements.Count - 1;
+        if (index < 0 || index > max) {
+            Push(Null);
+            return true;
+        }
+        Push(array.Elements[(int)index]);
+        return true;
+    }
+    
+    private bool ExecuteHashIndex(Hash hash, Object index) {
+        if (index is not Hashable hashableKey) {
+            return false;
+        }
+
+        try {
+            var pair = hash.Pairs[hashableKey.HashKey];
+            Push(pair.Value);
+        }
+        catch (Exception e) {
+            Console.WriteLine(e);
+            Push(Null);
+            return true;
+        }
+        
+        return true;
     }
 
     private bool IsTrue(Object obj) {

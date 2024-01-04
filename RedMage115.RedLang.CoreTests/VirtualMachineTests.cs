@@ -6,8 +6,10 @@ using RedMage115.RedLang.Core.RedLexer;
 using RedMage115.RedLang.Core.RedParser;
 using RedMage115.RedLang.Core.RedVm;
 using Xunit.Abstractions;
+using Array = RedMage115.RedLang.Core.RedObject.Array;
 using Boolean = RedMage115.RedLang.Core.RedObject.Boolean;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
+using String = RedMage115.RedLang.Core.RedObject.String;
 
 namespace RedMage115.RedLang.CoreTests;
 
@@ -641,6 +643,232 @@ public class VirtualMachineTests {
             
             if (lastPopped is Integer integer) {
                 Assert.Equal(expected, integer.Value);
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestStringLit() {
+        var tests = new List<TestCase>() {
+            new TestCase(""" let x = "hello"; x """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            const string expected = "hello";
+            _testOutputHelper.WriteLine($"Expected {expected}, got: {vm.GetLastPopped().InspectObject()}");
+            var lastPopped = vm.GetLastPopped();
+            
+            if (lastPopped is String @string) {
+                Assert.Equal(expected, @string.Value);
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestStringLitAdd() {
+        var tests = new List<TestCase>() {
+            new TestCase(""" let x = "hello "; let y = "world"; x+y """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            const string expected = "hello world";
+            _testOutputHelper.WriteLine($"Expected {expected}, got: {vm.GetLastPopped().InspectObject()}");
+            var lastPopped = vm.GetLastPopped();
+            
+            if (lastPopped is String @string) {
+                Assert.Equal(expected, @string.Value);
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestArrayLit() {
+        var tests = new List<TestCase>() {
+            new TestCase(""" let x = [1,2,3]; x[0]""", 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            const string expected = "1";
+            _testOutputHelper.WriteLine($"Expected Array of [1,2,3], got: {vm.GetLastPopped().InspectObject()}");
+            var lastPopped = vm.GetLastPopped();
+            
+            if (lastPopped is Array val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.Elements.First().InspectObject()}");
+                Assert.Equal(expected, val.Elements.First().InspectObject());
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestArrayLitTwo() {
+        var tests = new List<TestCase>() {
+            new TestCase(""" let x = [1,2,3]; x[1]""", 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            const string expected = "2";
+            _testOutputHelper.WriteLine($"Expected Array of [1,2,3], got: {vm.GetLastPopped().InspectObject()}");
+            var lastPopped = vm.GetLastPopped();
+            
+            if (lastPopped is Array val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.Elements.First().InspectObject()}");
+                Assert.Equal(expected, val.Elements.First().InspectObject());
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestHashLit() {
+        var tests = new List<TestCase>() {
+            new TestCase(""" let x = {"a":5,"b":10,"c":15}; x["a"]""", 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            const string expected = "5";
+            _testOutputHelper.WriteLine($"Expected Hash of {{\"a\":5,\"b\":10,\"c\":15}}, got: {vm.GetLastPopped().InspectObject()}");
+            var lastPopped = vm.GetLastPopped();
+            
+            if (lastPopped is Hash val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.Pairs.First().Value.Value.InspectObject()}");
+                Assert.Equal(expected, val.Pairs.First().Value.Value.InspectObject());
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestHashLitTwo() {
+        var tests = new List<TestCase>() {
+            new TestCase(""" let x = {"a":5,"b":10,"c":15}; x["b"]""", 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            _testOutputHelper.WriteLine("Dumping stack");
+            foreach (var obj in vm.Stack[..vm.StackPointer]) {
+                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+            }
+            const string expected = "10";
+            _testOutputHelper.WriteLine($"Expected Hash of {{\"a\":5,\"b\":10,\"c\":15}}, got: {vm.GetLastPopped().InspectObject()}");
+            var lastPopped = vm.GetLastPopped();
+            
+            if (lastPopped is Hash val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.Pairs.First().Value.Value.InspectObject()}");
+                Assert.Equal(expected, val.Pairs.First().Value.Value.InspectObject());
             }
 
         }

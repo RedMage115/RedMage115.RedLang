@@ -3,6 +3,7 @@ using RedMage115.RedLang.Core.RedCode;
 using RedMage115.RedLang.Core.RedObject;
 using Boolean = RedMage115.RedLang.Core.RedAst.Boolean;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
+using String = RedMage115.RedLang.Core.RedObject.String;
 
 namespace RedMage115.RedLang.Core.RedCompiler;
 
@@ -135,6 +136,45 @@ public partial class Compiler {
                     return false;
                 }
                 Emit(OpCode.OP_GET_GLOBAL, [identSymbol.Index]);
+                break;
+            case StringLiteral stringLiteral:
+                var strLit = new String(stringLiteral.Value);
+                Emit(OpCode.OP_CONSTANT, [AddConstant(strLit)]);
+                break;
+            case ArrayLiteral arrayLiteral:
+                foreach (var arrayLiteralElement in arrayLiteral.Elements) {
+                    if (!Compile(arrayLiteralElement)) {
+                        return false;
+                    }
+                }
+                Emit(OpCode.OP_ARRAY, [arrayLiteral.Elements.Count]);
+                break;
+            case HashLiteral hashLiteral:
+                var hashKeys = new List<Expression>();
+                foreach (var hashLiteralPair in hashLiteral.Pairs) {
+                    hashKeys.Add(hashLiteralPair.Key);
+                }
+                hashKeys.Sort((expression, expression1) => string.CompareOrdinal(expression.GetTokenLiteral(), expression1.GetTokenLiteral()));
+                for (var i = 0; i < hashKeys.Count; i++) {
+                    if (!Compile(hashKeys[i])) {
+                        return false;
+                    }
+                    if (!Compile(hashLiteral.Pairs[hashKeys[i]])) {
+                        return false;
+                    }
+                }
+
+                Emit(OpCode.OP_HASH, [hashLiteral.Pairs.Count * 2]);
+                break;
+            case IndexExpression indexExpression:
+                if (!Compile(indexExpression.Left)) {
+                    return false;
+                }    
+                if (!Compile(indexExpression.Index)) {
+                    return false;
+                }
+
+                Emit(OpCode.OP_INDEX, []);
                 break;
         }
 
