@@ -27,6 +27,7 @@ public partial class VirtualMachine {
             
             switch (op) {
                 case OpCode.OP_CONSTANT:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var constStart = ip + 1;
                     var constEnd = ip + 3;
                     var constByte = instructions[constStart..constEnd];
@@ -37,47 +38,56 @@ public partial class VirtualMachine {
                     }
                     break;
                 case OpCode.OP_ADD or OpCode.OP_SUB or OpCode.OP_MUL or OpCode.OP_DIV:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var resultBin = ExecuteBinaryOperation(op);
                     if (!resultBin) {
                         return false;
                     }
                     break;
                 case OpCode.OP_POP:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     Pop();
                     break;
                 case OpCode.OP_TRUE:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     if (!Push(True)) {
                         return false;
                     }
                     break;
                 case OpCode.OP_FALSE:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     if (!Push(False)) {
                         return false;
                     }
                     break;
                 case OpCode.OP_EQUAL or OpCode.OP_NOT_EQUAL or OpCode.OP_LESS_THAN or OpCode.OP_GREATER_THAN:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var resultComp = ExecuteCompareOperation(op);
                     if (!resultComp) {
                         return false;
                     }
                     break;
                 case OpCode.OP_BANG:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var resultBang = ExecuteBangOperator();
                     if (!resultBang) {
                         return false;
                     }
                     break;
                 case OpCode.OP_MINUS:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var resultMinus = ExecuteMinusOperator();
                     if (!resultMinus) {
                         return false;
                     }
                     break;
                 case OpCode.OP_JUMP:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var jmpPos = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
                     CurrentFrame.InstructionPointer = jmpPos - 1;
                     break;
                 case OpCode.OP_JUMP_NOT_TRUE:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var jntPos = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
                     CurrentFrame.InstructionPointer += 2;
                     var jntCondition = Pop();
@@ -86,19 +96,25 @@ public partial class VirtualMachine {
                     }
                     break;
                 case OpCode.OP_NULL:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     Push(Null);
                     break;
                 case OpCode.OP_SET_GLOBAL:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var globalIndexSet = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
                     CurrentFrame.InstructionPointer += 2;
                     Globals[globalIndexSet] = Pop();
+                    Log.Add($"Setting Global: {Globals[globalIndexSet].InspectObject()}");
                     break;
                 case OpCode.OP_GET_GLOBAL:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var globalIndexGet = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
                     CurrentFrame.InstructionPointer += 2;
+                    Log.Add($"Getting Global: {Globals[globalIndexGet].InspectObject()}");
                     Push(Globals[globalIndexGet]);
                     break;
                 case OpCode.OP_ARRAY:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var numOfArrayElements = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
                     CurrentFrame.InstructionPointer += 2;
                     var array = BuildArray(StackPointer-numOfArrayElements, StackPointer);
@@ -106,6 +122,7 @@ public partial class VirtualMachine {
                     Push(array);
                     break;
                 case OpCode.OP_HASH:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var numOfHashElements = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
                     CurrentFrame.InstructionPointer += 2;
                     var hash = BuildHash(StackPointer-numOfHashElements, StackPointer);
@@ -115,6 +132,7 @@ public partial class VirtualMachine {
                     }
                     break;
                 case OpCode.OP_INDEX:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var index = Pop();
                     var left = Pop();
                     if (!ExecuteIndexExpression(left, index)) {
@@ -122,32 +140,47 @@ public partial class VirtualMachine {
                     }
                     break;
                 case OpCode.OP_CALL:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     if (Stack[StackPointer-1] is not CompiledFunction compiledFunction) {
                         return false;
                     }
-                    var frame = new Frame(compiledFunction);
-                    PushFrame(frame);
+                    var callFrame = new Frame(compiledFunction, StackPointer);
+                    PushFrame(callFrame);
+                    StackPointer = callFrame.BasePointer + compiledFunction.NumberOfLocals;
+                    Log.Add($"Function Locals: {compiledFunction.NumberOfLocals}");
                     break;
                 case OpCode.OP_RETURN_VALUE:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
                     var returnValue = Pop();
-                    PopFrame();
-                    Pop();
+                    var retValFrame = PopFrame();
+                    StackPointer = retValFrame.BasePointer - 1;
                     Push(returnValue);
                     break;
                 case OpCode.OP_RETURN:
-                    PopFrame();
-                    Pop();
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
+                    var retNoneFrame = PopFrame();
+                    StackPointer = retNoneFrame.BasePointer - 1;
                     Push(Null);
                     break;
-            }
-
-            if (curFrame.InstructionPointer != CurrentFrame.InstructionPointer) {
-                continue;
+                case OpCode.OP_SET_LOCAL:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
+                    var localSetIndex = Definition.ReadUint8(instructions[(ip + 1)..]);
+                    CurrentFrame.InstructionPointer += 1;
+                    Stack[CurrentFrame.BasePointer + localSetIndex] = Pop();
+                    Log.Add($"Setting Local: {Stack[CurrentFrame.BasePointer + localSetIndex].GetObjectType()} - {Stack[CurrentFrame.BasePointer + localSetIndex].InspectObject()}");
+                    break;
+                case OpCode.OP_GET_LOCAL:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
+                    var localGetIndex = Definition.ReadUint8(instructions[(ip + 1)..]);
+                    CurrentFrame.InstructionPointer += 1;
+                    Log.Add($"Getting Local: {Stack[CurrentFrame.BasePointer + localGetIndex].GetObjectType()} - {Stack[CurrentFrame.BasePointer + localGetIndex].InspectObject()}");
+                    Push(Stack[CurrentFrame.BasePointer + localGetIndex]);
+                    break;
             }
             if (CurrentFrame.InstructionPointer >= CurrentFrame.Instructions.Count - 1) {
                 break;
             }
-            CurrentFrame.InstructionPointer++;
+            curFrame.InstructionPointer++;
         }
 
         return true;
@@ -188,6 +221,7 @@ public partial class VirtualMachine {
                     OpCode.OP_DIV => leftInteger.Value / rightInteger.Value,
                     _ => throw new ArgumentOutOfRangeException(nameof(opCode), opCode, null)
                 };
+                Log.Add($"[{leftInteger.Value} {Definition.Lookup(opCode)?.Name} {rightInteger.Value}] = {result}");
                 Push(new Integer(result));
             }
             catch (Exception e) {

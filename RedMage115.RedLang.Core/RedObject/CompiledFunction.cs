@@ -2,11 +2,13 @@
 
 public class CompiledFunction : Object {
     public List<byte> Instructions { get; init; } = [];
+    public int NumberOfLocals { get; set; }
 
     public CompiledFunction() { }
 
-    public CompiledFunction(List<byte> instructions) {
+    public CompiledFunction(List<byte> instructions, int numberOfLocals) {
         Instructions = instructions;
+        NumberOfLocals = numberOfLocals;
     }
 
     public ObjectType GetObjectType() {

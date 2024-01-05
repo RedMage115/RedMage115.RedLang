@@ -129,13 +129,31 @@ public partial class Compiler {
                     return false;
                 }
                 var letSymbol = SymbolTable.Define(letStatement.Name.Value);
-                Emit(OpCode.OP_SET_GLOBAL, [letSymbol.Index]);
+                switch (letSymbol.Scope) {
+                    case SymbolScope.GLOBAL:
+                        Emit(OpCode.OP_SET_GLOBAL, [letSymbol.Index]);
+                        break;
+                    case SymbolScope.LOCAL:
+                        Emit(OpCode.OP_SET_LOCAL, [letSymbol.Index]);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
                 break;
             case Identifier identifier:
                 if (!SymbolTable.Resolve(identifier.Value, out var identSymbol)) {
                     return false;
                 }
-                Emit(OpCode.OP_GET_GLOBAL, [identSymbol.Index]);
+                switch (identSymbol.Scope) {
+                    case SymbolScope.GLOBAL:
+                        Emit(OpCode.OP_GET_GLOBAL, [identSymbol.Index]);
+                        break;
+                    case SymbolScope.LOCAL:
+                        Emit(OpCode.OP_GET_LOCAL, [identSymbol.Index]);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
                 break;
             case StringLiteral stringLiteral:
                 var strLit = new String(stringLiteral.Value);
@@ -189,8 +207,10 @@ public partial class Compiler {
                 if (!LastInstructionIs(OpCode.OP_RETURN_VALUE)) {
                     Emit(OpCode.OP_RETURN, []);
                 }
+
+                var numberOfLocals = SymbolTable.NumDefinitions;
                 var instructions = LeaveScope();
-                var compiledFunction = new CompiledFunction(instructions);
+                var compiledFunction = new CompiledFunction(instructions, numberOfLocals);
                 Emit(OpCode.OP_CONSTANT, [AddConstant(compiledFunction)]);
                 break;
             case ReturnStatement returnStatement:
@@ -267,9 +287,11 @@ public partial class Compiler {
     }
 
     private void EnterScope() {
+        SymbolTable = new SymbolTable(SymbolTable);
         var scope = new CompilationScope();
         Scopes.Add(scope);
         ScopeIndex++;
+        
     }
 
     private void ReplaceLastPopWithReturn() {
@@ -283,6 +305,7 @@ public partial class Compiler {
         var scope = CurrentScope;
         Scopes.RemoveAt(ScopeIndex);
         ScopeIndex--;
+        if (SymbolTable.Outer != null) SymbolTable = SymbolTable.Outer;
         return scope.Instructions;
     }
     

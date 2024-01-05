@@ -28,6 +28,8 @@ public static class OpCode {
     public const byte OP_CALL = 22;
     public const byte OP_RETURN_VALUE = 23;
     public const byte OP_RETURN = 24;
+    public const byte OP_GET_LOCAL = 25;
+    public const byte OP_SET_LOCAL = 26;
 
 
     public static string OpCodeToString(List<byte> opcode) {
@@ -57,6 +59,10 @@ public static class OpCode {
                         instruction[offset] = b;
                         offset++;
                     }
+                    break;
+                case 1:
+                    instruction[offset] = (byte)i;
+                    offset += width;
                     break;
             }
         }

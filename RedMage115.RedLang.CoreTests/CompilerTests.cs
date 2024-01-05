@@ -261,6 +261,46 @@ public class CompilerTests {
         
     }
     
+    [Fact]
+    private void TestFunctionCallScopes() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                            let y = 10;
+                            let x = fn(){5+y};
+                            let z = fn(){5+y};
+                            x() + z()
+                         """,
+                [],
+                [
+                ])
+        };
+
+        foreach (var testCase in tests) {
+            var program = new Parser(new Lexer(testCase.Input)).ParseProgram();
+            var compiler = new Compiler();
+            compiler.Compile(program);
+            var actual = compiler.ByteCode();
+            _testOutputHelper.WriteLine($"Expected Compiled Function, got: {actual.Constants.Last().GetObjectType()}");
+            Assert.IsType<CompiledFunction>(actual.Constants.Last());
+            _testOutputHelper.WriteLine($"Expected last instruction: {OpCode.OP_ADD}, got: {actual.Instructions[^2]}");
+            Assert.Equal(OpCode.OP_ADD, actual.Instructions[^2]);
+            Assert.NotEmpty(actual.Instructions);
+            Assert.NotEmpty(actual.Constants);
+            _testOutputHelper.WriteLine("Dumping Instructions");
+            foreach (var instruction in actual.Instructions) {
+                var def = Definition.Lookup(instruction);
+                if (def is not null) {
+                    _testOutputHelper.WriteLine($"{def.Name} - {instruction}");
+                }
+            }
+            _testOutputHelper.WriteLine("Dumping Constants");
+            foreach (var constant in actual.Constants) {
+                _testOutputHelper.WriteLine(constant.InspectObject());
+            }
+        }
+        
+    }
+    
     private struct TestCase {
         internal string Input { get; set; }
         internal List<Object> ExpectedConstants { get; set; }

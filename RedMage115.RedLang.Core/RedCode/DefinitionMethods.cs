@@ -29,6 +29,8 @@ public partial class Definition {
         { OpCode.OP_CALL, new Definition("OpCall", [])},
         { OpCode.OP_RETURN_VALUE, new Definition("OpReturnValue", [])},
         { OpCode.OP_RETURN, new Definition("OpReturn", [])},
+        { OpCode.OP_GET_LOCAL, new Definition("OpGetLocal", [1])},
+        { OpCode.OP_SET_LOCAL, new Definition("OpSetLocal", [1])},
     };
 
     public static Definition? Lookup(byte opCode) {
@@ -42,8 +44,12 @@ public partial class Definition {
         foreach (var operandWidth in definition.OperandWidths) {
             switch (operandWidth) {
                 case 2:
-                    var result = ReadUint16(instructions[offset..]);
-                    operandList[i] = result;
+                    var resultTwo = ReadUint16(instructions[offset..]);
+                    operandList[i] = resultTwo;
+                    break;
+                case 1:
+                    var resultOne = ReadUint8(instructions[offset..]);
+                    operandList[i] = resultOne;
                     break;
             }
             offset += operandWidth;
@@ -66,5 +72,9 @@ public partial class Definition {
         }
         var span = new Span<byte>(byteArr);
         return BinaryPrimitives.ReadUInt16BigEndian(span);
+    }
+
+    public static byte ReadUint8(List<byte> bytes) {
+        return bytes.First();
     }
 }

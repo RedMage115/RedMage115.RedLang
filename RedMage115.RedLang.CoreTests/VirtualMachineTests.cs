@@ -1,4 +1,5 @@
-﻿using RedMage115.RedLang.Core.RedAst;
+﻿using System.Numerics;
+using RedMage115.RedLang.Core.RedAst;
 using RedMage115.RedLang.Core.RedObject;
 using RedMage115.RedLang.Core.RedCode;
 using RedMage115.RedLang.Core.RedCompiler;
@@ -926,6 +927,47 @@ public class VirtualMachineTests {
     }
     
     [Fact]
+    private void TestFunctionFirstClass() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                         let x = fn(){return 10;};
+                         let y = fn(){x;};
+                         y()();
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            var lastPopped = vm.StackTop();
+            Assert.NotNull(lastPopped);
+            const string expected = "10";
+            _testOutputHelper.WriteLine($"Expected a function of 5+10, got: {lastPopped.InspectObject()}");
+            Assert.IsType<Integer>(lastPopped);
+            if (lastPopped is Integer val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.InspectObject()}");
+                Assert.Equal(expected, val.InspectObject());
+            }
+
+        }
+        
+    }
+    
+    [Fact]
     private void TestFunctionSimpleNoReturn() {
         var tests = new List<TestCase>() {
             new TestCase("""
@@ -965,6 +1007,101 @@ public class VirtualMachineTests {
         
     }
 
+    [Fact]
+    private void TestLocalVars() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                         let glob = 1;
+                         let x = fn() {
+                            let num = 1;
+                            glob+num
+                         };
+                         let y = fn() {
+                            let num = 2;
+                            glob+num
+                         };
+                         x() + y()
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            DumpScopes(compiler, vm);
+            DumpLogs(vm);
+            var lastPopped = vm.GetLastPopped();
+            Assert.NotNull(lastPopped);
+            const string expected = "5";
+            _testOutputHelper.WriteLine($"Expected a function, got: {lastPopped.InspectObject()}");
+            Assert.IsType<Integer>(lastPopped);
+            if (lastPopped is Integer val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.InspectObject()}");
+                Assert.Equal(expected, val.InspectObject());
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestLocalVarsSimple() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                         let globalVar = 100;
+                         let x = fn(){return globalVar;};
+                         x();
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            var lastPopped = vm.StackTop();
+            Assert.NotNull(lastPopped);
+            const string expected = "100";
+            _testOutputHelper.WriteLine($"Expected a function of 100, got: {lastPopped.InspectObject()}");
+            Assert.IsType<Integer>(lastPopped);
+            if (lastPopped is Integer val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.InspectObject()}");
+                Assert.Equal(expected, val.InspectObject());
+            }
+
+        }
+        
+    }
+    
+    
+    
+    
+    
     private Program GetProgram(string input) {
         var lexer = new Lexer(input);
         var parser = new Parser(lexer);
@@ -994,6 +1131,22 @@ public class VirtualMachineTests {
             }
             _testOutputHelper.WriteLine($"{frame.Function.InspectObject()} - {frame.Instructions.Aggregate("", (s, b) => s+=b.ToString())} - {frame.InstructionPointer}");
         }
+    }
+
+    private void DumpScopes(Compiler compiler, VirtualMachine virtualMachine) {
+        _testOutputHelper.WriteLine("Dumping Scopes");
+        foreach (var def in compiler.SymbolTable.Store) {
+            _testOutputHelper.WriteLine($"{def.Key} - {def.Value.Name} - {def.Value.Scope} {def.Value.Index}");
+        }
+        
+    }
+
+    private void DumpLogs(VirtualMachine virtualMachine) {
+        _testOutputHelper.WriteLine("Dumping Logs");
+        foreach (var line in virtualMachine.Log) {
+            _testOutputHelper.WriteLine(line);
+        }
+        _testOutputHelper.WriteLine("Log Dump Finished");
     }
     
     private struct TestCase {
