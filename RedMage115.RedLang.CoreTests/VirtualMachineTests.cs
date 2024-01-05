@@ -44,10 +44,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             if (vm.GetLastPopped() is Integer integer) {
                 const int expectedResult = 12;
                 Assert.Equal(expectedResult, integer.Value);
@@ -90,10 +87,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             if (vm.GetLastPopped() is Integer integer) {
                 const int expectedResult = 8;
                 Assert.Equal(expectedResult, integer.Value);
@@ -137,10 +131,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             if (vm.GetLastPopped() is Integer integer) {
                 const int expectedResult = 20;
                 Assert.Equal(expectedResult, integer.Value);
@@ -182,10 +173,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const int expectedResult = 5;
             if (vm.GetLastPopped() is Integer integer) {
                 Assert.Equal(expectedResult, integer.Value);
@@ -227,10 +215,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const bool expectedResult = false;
             if (vm.GetLastPopped() is Boolean boolean) {
                 _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {boolean.Value}");
@@ -269,10 +254,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const bool expectedResult = true;
             if (vm.GetLastPopped() is Boolean boolean) {
                 _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {boolean.Value}");
@@ -311,10 +293,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const bool expectedResult = true;
             if (vm.GetLastPopped() is Boolean boolean) {
                 _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {boolean.Value}");
@@ -353,10 +332,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const bool expectedResult = false;
             if (vm.GetLastPopped() is Boolean boolean) {
                 _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {boolean.Value}");
@@ -395,10 +371,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const bool expectedResult = false;
             if (vm.GetLastPopped() is Boolean boolean) {
                 _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {boolean.Value}");
@@ -438,10 +411,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const int expectedResult = -1;
             if (vm.GetLastPopped() is Integer integer) {
                 _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {integer.Value}");
@@ -480,10 +450,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const int expectedResult = 10;
             if (vm.GetLastPopped() is Integer integer) {
                 _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {integer.Value}");
@@ -523,9 +490,7 @@ public class VirtualMachineTests {
                 _testOutputHelper.WriteLine(compilerError);
             }
             _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const int expectedResult = 11;
             if (vm.GetLastPopped() is Integer integer) {
                 _testOutputHelper.WriteLine($"Last Popped Expected: {expectedResult}, got: {integer.Value}");
@@ -564,10 +529,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             _testOutputHelper.WriteLine($"Expected NULL, got: {vm.GetLastPopped().InspectObject()}");
             Assert.IsType<Null>(vm.GetLastPopped());
             
@@ -596,10 +558,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const int expected = 10;
             _testOutputHelper.WriteLine($"Expected {expected}, got: {vm.GetLastPopped().InspectObject()}");
             var lastPopped = vm.GetLastPopped();
@@ -633,10 +592,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const int expected = 21;
             _testOutputHelper.WriteLine($"Expected {expected}, got: {vm.GetLastPopped().InspectObject()}");
             var lastPopped = vm.GetLastPopped();
@@ -670,10 +626,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const string expected = "hello";
             _testOutputHelper.WriteLine($"Expected {expected}, got: {vm.GetLastPopped().InspectObject()}");
             var lastPopped = vm.GetLastPopped();
@@ -707,10 +660,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const string expected = "hello world";
             _testOutputHelper.WriteLine($"Expected {expected}, got: {vm.GetLastPopped().InspectObject()}");
             var lastPopped = vm.GetLastPopped();
@@ -744,10 +694,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const string expected = "1";
             _testOutputHelper.WriteLine($"Expected Array of [1,2,3], got: {vm.GetLastPopped().InspectObject()}");
             var lastPopped = vm.GetLastPopped();
@@ -782,10 +729,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const string expected = "2";
             _testOutputHelper.WriteLine($"Expected Array of [1,2,3], got: {vm.GetLastPopped().InspectObject()}");
             var lastPopped = vm.GetLastPopped();
@@ -820,10 +764,7 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+            DumpStack(vm);
             const string expected = "5";
             _testOutputHelper.WriteLine($"Expected Hash of {{\"a\":5,\"b\":10,\"c\":15}}, got: {vm.GetLastPopped().InspectObject()}");
             var lastPopped = vm.GetLastPopped();
@@ -858,10 +799,8 @@ public class VirtualMachineTests {
             foreach (var compilerError in compiler.Errors) {
                 _testOutputHelper.WriteLine(compilerError);
             }
-            _testOutputHelper.WriteLine("Dumping stack");
-            foreach (var obj in vm.Stack[..vm.StackPointer]) {
-                _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
-            }
+
+            DumpStack(vm);
             const string expected = "10";
             _testOutputHelper.WriteLine($"Expected Hash of {{\"a\":5,\"b\":10,\"c\":15}}, got: {vm.GetLastPopped().InspectObject()}");
             var lastPopped = vm.GetLastPopped();
@@ -875,12 +814,186 @@ public class VirtualMachineTests {
         
     }
     
+    [Fact]
+    private void TestFunctionSimpleImplReturn() {
+        var tests = new List<TestCase>() {
+            new TestCase(""" let x = fn() {5+10}; x(); """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            var lastPopped = vm.StackTop();
+            Assert.NotNull(lastPopped);
+            const string expected = "15";
+            _testOutputHelper.WriteLine($"Expected a function of 5+10, got: {lastPopped.InspectObject()}");
+            
+            Assert.IsType<Integer>(lastPopped);
+            if (lastPopped is Integer val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.InspectObject()}");
+                Assert.Equal(expected, val.InspectObject());
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestFunctionSimpleExpReturn() {
+        var tests = new List<TestCase>() {
+            new TestCase(""" let x = fn() {return 5+10;}; x(); """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+            DumpStack(vm);
+            var lastPopped = vm.StackTop();
+            Assert.NotNull(lastPopped);
+            const string expected = "15";
+            _testOutputHelper.WriteLine($"Expected a function of 5+10, got: {lastPopped.InspectObject()}");
+            Assert.IsType<Integer>(lastPopped);
+            if (lastPopped is Integer val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.InspectObject()}");
+                Assert.Equal(expected, val.InspectObject());
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestFunctionSimpleExpReturn2() {
+        var tests = new List<TestCase>() {
+            new TestCase("""fn() {return 5+10;}();""", 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            var lastPopped = vm.StackTop();
+            Assert.NotNull(lastPopped);
+            const string expected = "15";
+            _testOutputHelper.WriteLine($"Expected a function of 5+10, got: {lastPopped.InspectObject()}");
+            Assert.IsType<Integer>(lastPopped);
+            if (lastPopped is Integer val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.InspectObject()}");
+                Assert.Equal(expected, val.InspectObject());
+            }
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestFunctionSimpleNoReturn() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                          let fivePlusTen = fn() { let x = 10; };
+                          fivePlusTen();
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            var lastPopped = vm.StackTop();
+            const string expected = "null";
+            _testOutputHelper.WriteLine($"Expected a function of null, got: {lastPopped}");
+            
+            
+            Assert.IsType<Null>(lastPopped);
+            _testOutputHelper.WriteLine($"Expected: {expected}, got: {lastPopped.InspectObject()}");
+            Assert.Equal(expected, lastPopped.InspectObject());
+            
+
+        }
+        
+    }
 
     private Program GetProgram(string input) {
         var lexer = new Lexer(input);
         var parser = new Parser(lexer);
         var program = parser.ParseProgram();
         return program;
+    }
+
+    private void DumpStack(VirtualMachine vm ,string test = "") {
+        _testOutputHelper.WriteLine(
+            string.IsNullOrWhiteSpace(test)
+            ? "Dumping stack"
+            : $"Dumping stack for {test}");
+        
+        foreach (var obj in vm.Stack) {
+            if (obj == null!) {
+                break;
+            }
+            _testOutputHelper.WriteLine($"{obj.GetObjectType()} {obj.InspectObject()}");
+        }
+        _testOutputHelper.WriteLine(
+            string.IsNullOrWhiteSpace(test)
+                ? "Dumping frames"
+                : $"Dumping frames for {test}");
+        foreach (var frame in vm.Frames) {
+            if (frame == null!) {
+                break;
+            }
+            _testOutputHelper.WriteLine($"{frame.Function.InspectObject()} - {frame.Instructions.Aggregate("", (s, b) => s+=b.ToString())} - {frame.InstructionPointer}");
+        }
     }
     
     private struct TestCase {

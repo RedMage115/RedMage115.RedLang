@@ -94,11 +94,11 @@ public partial class Compiler {
                 if (!Compile(ifExpression.Consequence)) {
                     return false;
                 }
-                if (LastInstructionIsPop()) {
+                if (LastInstructionIs(OpCode.OP_POP)) {
                     RemoveLastPop();
                 }
                 var jumpPos = Emit(OpCode.OP_JUMP, [9999]);
-                var afterConsequencePos = Instructions.Count;
+                var afterConsequencePos = CurrentScope.Instructions.Count;
                 ChangeOperand(jntPos, afterConsequencePos);
                 if (ifExpression.Alternative is null) {
                     Emit(OpCode.OP_NULL, []);
@@ -107,11 +107,11 @@ public partial class Compiler {
                     if (!Compile(ifExpression.Alternative)) {
                         return false;
                     }
-                    if (LastInstructionIsPop()) {
+                    if (LastInstructionIs(OpCode.OP_POP)) {
                         RemoveLastPop();
                     }
                 }
-                var afterAltPos = Instructions.Count;
+                var afterAltPos = CurrentScope.Instructions.Count;
                 ChangeOperand(jumpPos, afterAltPos);
                 break;
             case BlockStatement blockStatement:
@@ -155,11 +155,11 @@ public partial class Compiler {
                     hashKeys.Add(hashLiteralPair.Key);
                 }
                 hashKeys.Sort((expression, expression1) => string.CompareOrdinal(expression.GetTokenLiteral(), expression1.GetTokenLiteral()));
-                for (var i = 0; i < hashKeys.Count; i++) {
-                    if (!Compile(hashKeys[i])) {
+                foreach (var hk in hashKeys) {
+                    if (!Compile(hk)) {
                         return false;
                     }
-                    if (!Compile(hashLiteral.Pairs[hashKeys[i]])) {
+                    if (!Compile(hashLiteral.Pairs[hk])) {
                         return false;
                     }
                 }
@@ -176,6 +176,35 @@ public partial class Compiler {
 
                 Emit(OpCode.OP_INDEX, []);
                 break;
+            case FunctionLiteral functionLiteral:
+                EnterScope();
+                if (!Compile(functionLiteral.Body)) {
+                    return false;
+                }
+
+                if (LastInstructionIs(OpCode.OP_POP)) {
+                    ReplaceLastPopWithReturn();
+                }
+
+                if (!LastInstructionIs(OpCode.OP_RETURN_VALUE)) {
+                    Emit(OpCode.OP_RETURN, []);
+                }
+                var instructions = LeaveScope();
+                var compiledFunction = new CompiledFunction(instructions);
+                Emit(OpCode.OP_CONSTANT, [AddConstant(compiledFunction)]);
+                break;
+            case ReturnStatement returnStatement:
+                if (returnStatement.ReturnValue != null && !Compile(returnStatement.ReturnValue)) {
+                    return false;
+                }
+                Emit(OpCode.OP_RETURN_VALUE, []);
+                break;
+            case CallExpression callExpression:
+                if (!Compile(callExpression.Function)) {
+                    return false;
+                }
+                Emit(OpCode.OP_CALL, []);
+                break;
         }
 
         return true;
@@ -189,40 +218,43 @@ public partial class Compiler {
     }
 
     private void SetLastInstruction(byte opCode, int pos) {
-        var prev = LastInstruction;
+        var prev = CurrentScope.LastInstruction;
         var last = new EmittedInstruction(opCode, pos);
-        PreviousInstruction = prev;
-        LastInstruction = last;
+        CurrentScope.PreviousInstruction = prev;
+        CurrentScope.LastInstruction = last;
     }
     
     private int AddInstruction(IEnumerable<byte> instructions) {
-        var pos = Instructions.Count;
-        Instructions.AddRange(instructions);
+        var pos = CurrentScope.Instructions.Count;
+        CurrentScope.Instructions.AddRange(instructions);
         return pos;
     }
 
-    private bool LastInstructionIsPop() {
-        return LastInstruction?.Opcode == OpCode.OP_POP;
+    private bool LastInstructionIs(byte opCode) {
+        if (CurrentScope.Instructions.Count == 0) {
+            return false;
+        }
+        return CurrentScope.LastInstruction?.Opcode == opCode;
     }
 
-    private void ReplaceInstruction(int position, List<byte> newInstruction) {
+    private void ReplaceInstruction(int position, IReadOnlyList<byte> newInstruction) {
         for (var i = 0; i < newInstruction.Count; i++) {
-            Instructions[position + i] = newInstruction[i];
+            CurrentScope.Instructions[position + i] = newInstruction[i];
         }
     }
 
     private void ChangeOperand(int position, int operand) {
-        var op = Instructions[position];
+        var op = CurrentScope.Instructions[position];
         var newInst = OpCode.Make(op, [operand]);
         ReplaceInstruction(position, newInst);
     }
 
     private void RemoveLastPop() {
-        if (LastInstruction is null) {
+        if (CurrentScope.LastInstruction is null) {
             return;
         }
-        Instructions = Instructions[..LastInstruction.Position];
-        LastInstruction = PreviousInstruction;
+        CurrentScope.Instructions = CurrentScope.Instructions[..CurrentScope.LastInstruction.Position];
+        CurrentScope.LastInstruction = CurrentScope.PreviousInstruction;
     }
     
     private int AddConstant(Object constant) {
@@ -231,6 +263,29 @@ public partial class Compiler {
     }
     
     public ByteCode ByteCode() {
-        return new ByteCode(Instructions, Constants);
+        return new ByteCode(CurrentScope.Instructions, Constants);
     }
+
+    private void EnterScope() {
+        var scope = new CompilationScope();
+        Scopes.Add(scope);
+        ScopeIndex++;
+    }
+
+    private void ReplaceLastPopWithReturn() {
+        if (CurrentScope.LastInstruction is null ) return;
+        var lastPos = CurrentScope.LastInstruction.Position;
+        ReplaceInstruction(lastPos, OpCode.Make(OpCode.OP_RETURN_VALUE, []));
+        CurrentScope.LastInstruction.Opcode = OpCode.OP_RETURN_VALUE;
+    }
+    
+    private List<byte> LeaveScope() {
+        var scope = CurrentScope;
+        Scopes.RemoveAt(ScopeIndex);
+        ScopeIndex--;
+        return scope.Instructions;
+    }
+    
+    
+    
 }

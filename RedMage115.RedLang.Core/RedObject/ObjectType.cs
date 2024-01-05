@@ -10,5 +10,6 @@ public enum ObjectType {
     STRING,
     BUILTIN,
     ARRAY,
-    HASH
+    HASH,
+    COMPILED_FUNCTION
 }

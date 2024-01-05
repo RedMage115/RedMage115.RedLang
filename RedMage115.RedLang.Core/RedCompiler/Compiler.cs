@@ -4,26 +4,23 @@ using Object = RedMage115.RedLang.Core.RedObject.Object;
 namespace RedMage115.RedLang.Core.RedCompiler;
 
 public partial class Compiler {
-    private List<byte> Instructions { get; set; }
-    private List<Object> Constants { get; set; }
-
+    public List<string> Errors { get; set; } = [];
     public SymbolTable SymbolTable { get; set; }
+    private List<Object> Constants { get; set; }
+    private List<CompilationScope> Scopes { get; set; } = [];
 
-    private EmittedInstruction? LastInstruction { get; set; }
-    private EmittedInstruction? PreviousInstruction { get; set; }
-
-
-    public List<string> Errors = [];
+    private int ScopeIndex { get; set; } = 0;
+    private CompilationScope CurrentScope => Scopes[ScopeIndex];
 
     public Compiler() {
-        Instructions = [];
         Constants = [];
         SymbolTable = new SymbolTable();
+        Scopes.Add(new CompilationScope());
     }
     
     public Compiler(SymbolTable symbolTable) {
-        Instructions = [];
         Constants = [];
         SymbolTable = symbolTable;
+        Scopes.Add(new CompilationScope());
     }
 }

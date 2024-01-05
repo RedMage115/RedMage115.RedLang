@@ -26,6 +26,9 @@ public partial class Definition {
         { OpCode.OP_ARRAY, new Definition("OpArray", [2])},
         { OpCode.OP_HASH, new Definition("OpHash", [2])},
         { OpCode.OP_INDEX, new Definition("OpIndex", [])},
+        { OpCode.OP_CALL, new Definition("OpCall", [])},
+        { OpCode.OP_RETURN_VALUE, new Definition("OpReturnValue", [])},
+        { OpCode.OP_RETURN, new Definition("OpReturn", [])},
     };
 
     public static Definition? Lookup(byte opCode) {
@@ -51,7 +54,17 @@ public partial class Definition {
     }
 
     public static ushort ReadUint16(List<byte> bytes) {
-        var span = new Span<byte>(bytes.ToArray());
+        if (bytes.Count != 2) {
+            throw new ArgumentException(null, nameof(bytes));
+        }
+
+        var byteArr = new byte[2];
+        var x = 0;
+        foreach (var b in bytes) {
+            byteArr[x] = b;
+            x++;
+        }
+        var span = new Span<byte>(byteArr);
         return BinaryPrimitives.ReadUInt16BigEndian(span);
     }
 }

@@ -70,6 +70,197 @@ public class CompilerTests {
         
     }
     
+    [Fact]
+    private void TestFunctionExplicit() {
+        var tests = new List<TestCase>() {
+            new TestCase("fn(){return 10+5;}",
+                [],
+                [
+                ])
+        };
+
+        foreach (var testCase in tests) {
+            var program = new Parser(new Lexer(testCase.Input)).ParseProgram();
+            var compiler = new Compiler();
+            compiler.Compile(program);
+            var actual = compiler.ByteCode();
+            _testOutputHelper.WriteLine($"Expected Compiled Function, got: {actual.Constants.Last().GetObjectType()}");
+            Assert.IsType<CompiledFunction>(actual.Constants.Last());
+            if (actual.Constants.Last() is CompiledFunction compiledFunction) {
+                _testOutputHelper.WriteLine($"Expected last instruction: {OpCode.OP_RETURN_VALUE}, got: {compiledFunction.Instructions.Last()}");
+                Assert.Equal(OpCode.OP_RETURN_VALUE, compiledFunction.Instructions.Last());
+            }
+            Assert.NotEmpty(actual.Instructions);
+            Assert.NotEmpty(actual.Constants);
+            _testOutputHelper.WriteLine("Dumping Instructions");
+            foreach (var instruction in actual.Instructions) {
+                var def = Definition.Lookup(instruction);
+                if (def is not null) {
+                    _testOutputHelper.WriteLine($"{def.Name} - {instruction}");
+                }
+            }
+
+            _testOutputHelper.WriteLine("Dumping Constants");
+            foreach (var constant in actual.Constants) {
+                _testOutputHelper.WriteLine(constant.InspectObject());
+            }
+        }
+        
+    }
+    
+    [Fact]
+    private void TestFunctionImplicit() {
+        var tests = new List<TestCase>() {
+            new TestCase("fn(){10+5}",
+                [],
+                [
+                ])
+        };
+
+        foreach (var testCase in tests) {
+            var program = new Parser(new Lexer(testCase.Input)).ParseProgram();
+            var compiler = new Compiler();
+            compiler.Compile(program);
+            var actual = compiler.ByteCode();
+            _testOutputHelper.WriteLine($"Expected Compiled Function, got: {actual.Constants.Last().GetObjectType()}");
+            Assert.IsType<CompiledFunction>(actual.Constants.Last());
+            if (actual.Constants.Last() is CompiledFunction compiledFunction) {
+                _testOutputHelper.WriteLine($"Expected last instruction: {OpCode.OP_RETURN_VALUE}, got: {compiledFunction.Instructions.Last()}");
+                Assert.Equal(OpCode.OP_RETURN_VALUE, compiledFunction.Instructions.Last());
+            }
+            Assert.NotEmpty(actual.Instructions);
+            Assert.NotEmpty(actual.Constants);
+            _testOutputHelper.WriteLine("Dumping Instructions");
+            foreach (var instruction in actual.Instructions) {
+                var def = Definition.Lookup(instruction);
+                if (def is not null) {
+                    _testOutputHelper.WriteLine($"{def.Name} - {instruction}");
+                }
+            }
+
+            _testOutputHelper.WriteLine("Dumping Constants");
+            foreach (var constant in actual.Constants) {
+                _testOutputHelper.WriteLine(constant.InspectObject());
+            }
+        }
+        
+    }
+    
+    [Fact]
+    private void TestFunctionImplicitWithPops() {
+        var tests = new List<TestCase>() {
+            new TestCase("fn(){10; 5+5}",
+                [],
+                [
+                ])
+        };
+
+        foreach (var testCase in tests) {
+            var program = new Parser(new Lexer(testCase.Input)).ParseProgram();
+            var compiler = new Compiler();
+            compiler.Compile(program);
+            var actual = compiler.ByteCode();
+            _testOutputHelper.WriteLine($"Expected Compiled Function, got: {actual.Constants.Last().GetObjectType()}");
+            Assert.IsType<CompiledFunction>(actual.Constants.Last());
+            if (actual.Constants.Last() is CompiledFunction compiledFunction) {
+                _testOutputHelper.WriteLine($"Expected last instruction: {OpCode.OP_RETURN_VALUE}, got: {compiledFunction.Instructions.Last()}");
+                Assert.Equal(OpCode.OP_RETURN_VALUE, compiledFunction.Instructions.Last());
+            }
+            Assert.NotEmpty(actual.Instructions);
+            Assert.NotEmpty(actual.Constants);
+            _testOutputHelper.WriteLine("Dumping Instructions");
+            foreach (var instruction in actual.Instructions) {
+                var def = Definition.Lookup(instruction);
+                if (def is not null) {
+                    _testOutputHelper.WriteLine($"{def.Name} - {instruction}");
+                }
+            }
+
+            _testOutputHelper.WriteLine("Dumping Constants");
+            foreach (var constant in actual.Constants) {
+                _testOutputHelper.WriteLine(constant.InspectObject());
+            }
+        }
+        
+    }
+    
+    [Fact]
+    private void TestFunctionNoBody() {
+        var tests = new List<TestCase>() {
+            new TestCase("fn(){}",
+                [],
+                [
+                ])
+        };
+
+        foreach (var testCase in tests) {
+            var program = new Parser(new Lexer(testCase.Input)).ParseProgram();
+            var compiler = new Compiler();
+            compiler.Compile(program);
+            var actual = compiler.ByteCode();
+            _testOutputHelper.WriteLine($"Expected Compiled Function, got: {actual.Constants.Last().GetObjectType()}");
+            Assert.IsType<CompiledFunction>(actual.Constants.Last());
+            if (actual.Constants.Last() is CompiledFunction compiledFunction) {
+                _testOutputHelper.WriteLine($"Expected last instruction: {OpCode.OP_RETURN}, got: {compiledFunction.Instructions.Last()}");
+                Assert.Equal(OpCode.OP_RETURN, compiledFunction.Instructions.Last());
+            }
+            Assert.NotEmpty(actual.Instructions);
+            Assert.NotEmpty(actual.Constants);
+            _testOutputHelper.WriteLine("Dumping Instructions");
+            foreach (var instruction in actual.Instructions) {
+                var def = Definition.Lookup(instruction);
+                if (def is not null) {
+                    _testOutputHelper.WriteLine($"{def.Name} - {instruction}");
+                }
+            }
+
+            _testOutputHelper.WriteLine("Dumping Constants");
+            foreach (var constant in actual.Constants) {
+                _testOutputHelper.WriteLine(constant.InspectObject());
+            }
+        }
+        
+    }
+    
+    [Fact]
+    private void TestFunctionCall() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                            let x = fn(){5+10};
+                            x(); 
+                         """,
+                [],
+                [
+                ])
+        };
+
+        foreach (var testCase in tests) {
+            var program = new Parser(new Lexer(testCase.Input)).ParseProgram();
+            var compiler = new Compiler();
+            compiler.Compile(program);
+            var actual = compiler.ByteCode();
+            _testOutputHelper.WriteLine($"Expected Compiled Function, got: {actual.Constants.Last().GetObjectType()}");
+            Assert.IsType<CompiledFunction>(actual.Constants.Last());
+            _testOutputHelper.WriteLine($"Expected last instruction: {OpCode.OP_CALL}, got: {actual.Instructions[^2]}");
+            Assert.Equal(OpCode.OP_CALL, actual.Instructions[^2]);
+            Assert.NotEmpty(actual.Instructions);
+            Assert.NotEmpty(actual.Constants);
+            _testOutputHelper.WriteLine("Dumping Instructions");
+            foreach (var instruction in actual.Instructions) {
+                var def = Definition.Lookup(instruction);
+                if (def is not null) {
+                    _testOutputHelper.WriteLine($"{def.Name} - {instruction}");
+                }
+            }
+
+            _testOutputHelper.WriteLine("Dumping Constants");
+            foreach (var constant in actual.Constants) {
+                _testOutputHelper.WriteLine(constant.InspectObject());
+            }
+        }
+        
+    }
+    
     private struct TestCase {
         internal string Input { get; set; }
         internal List<Object> ExpectedConstants { get; set; }

@@ -25,6 +25,9 @@ public static class OpCode {
     public const byte OP_ARRAY = 19;
     public const byte OP_HASH = 20;
     public const byte OP_INDEX = 21;
+    public const byte OP_CALL = 22;
+    public const byte OP_RETURN_VALUE = 23;
+    public const byte OP_RETURN = 24;
 
 
     public static string OpCodeToString(List<byte> opcode) {

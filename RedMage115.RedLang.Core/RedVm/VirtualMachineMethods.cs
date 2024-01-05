@@ -1,4 +1,5 @@
-﻿using System.Runtime.Intrinsics.X86;
+﻿using System.Diagnostics;
+using System.Runtime.Intrinsics.X86;
 using RedMage115.RedLang.Core.RedCode;
 using RedMage115.RedLang.Core.RedObject;
 using Array = RedMage115.RedLang.Core.RedObject.Array;
@@ -14,12 +15,23 @@ public partial class VirtualMachine {
     }
 
     public bool Run() {
-        for (var ip = 0; ip < Instructions.Count; ip++) {
-            var op = Instructions[ip];
+        int ip;
+        List<byte> instructions;
+        byte op;
+        
+        while (true) {
+            var curFrame = CurrentFrame;
+            ip = CurrentFrame.InstructionPointer;
+            instructions = CurrentFrame.Instructions;
+            op = instructions[ip];
+            
             switch (op) {
                 case OpCode.OP_CONSTANT:
-                    var constIndex = Definition.ReadUint16(Instructions[(ip + 1)..]);
-                    ip += 2;
+                    var constStart = ip + 1;
+                    var constEnd = ip + 3;
+                    var constByte = instructions[constStart..constEnd];
+                    var constIndex = Definition.ReadUint16(constByte);
+                    CurrentFrame.InstructionPointer += 2;
                     if (!Push(Constants[constIndex])) {
                         return false;
                     }
@@ -62,40 +74,40 @@ public partial class VirtualMachine {
                     }
                     break;
                 case OpCode.OP_JUMP:
-                    var jmpPos = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
-                    ip = jmpPos - 1;
+                    var jmpPos = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
+                    CurrentFrame.InstructionPointer = jmpPos - 1;
                     break;
                 case OpCode.OP_JUMP_NOT_TRUE:
-                    var jntPos = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
-                    ip += 2;
+                    var jntPos = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
+                    CurrentFrame.InstructionPointer += 2;
                     var jntCondition = Pop();
                     if (!IsTrue(jntCondition)) {
-                        ip = jntPos - 1;
+                        CurrentFrame.InstructionPointer = jntPos - 1;
                     }
                     break;
                 case OpCode.OP_NULL:
                     Push(Null);
                     break;
                 case OpCode.OP_SET_GLOBAL:
-                    var globalIndexSet = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
-                    ip += 2;
+                    var globalIndexSet = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
+                    CurrentFrame.InstructionPointer += 2;
                     Globals[globalIndexSet] = Pop();
                     break;
                 case OpCode.OP_GET_GLOBAL:
-                    var globalIndexGet = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
-                    ip += 2;
+                    var globalIndexGet = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
+                    CurrentFrame.InstructionPointer += 2;
                     Push(Globals[globalIndexGet]);
                     break;
                 case OpCode.OP_ARRAY:
-                    var numOfArrayElements = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
-                    ip += 2;
+                    var numOfArrayElements = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
+                    CurrentFrame.InstructionPointer += 2;
                     var array = BuildArray(StackPointer-numOfArrayElements, StackPointer);
                     StackPointer -= numOfArrayElements;
                     Push(array);
                     break;
                 case OpCode.OP_HASH:
-                    var numOfHashElements = (int)Definition.ReadUint16(Instructions[(ip + 1)..]);
-                    ip += 2;
+                    var numOfHashElements = (int)Definition.ReadUint16(instructions[(ip + 1)..(ip + 3)]);
+                    CurrentFrame.InstructionPointer += 2;
                     var hash = BuildHash(StackPointer-numOfHashElements, StackPointer);
                     StackPointer -= numOfHashElements;
                     if (hash is not null) {
@@ -109,7 +121,33 @@ public partial class VirtualMachine {
                         return false;
                     }
                     break;
+                case OpCode.OP_CALL:
+                    if (Stack[StackPointer-1] is not CompiledFunction compiledFunction) {
+                        return false;
+                    }
+                    var frame = new Frame(compiledFunction);
+                    PushFrame(frame);
+                    break;
+                case OpCode.OP_RETURN_VALUE:
+                    var returnValue = Pop();
+                    PopFrame();
+                    Pop();
+                    Push(returnValue);
+                    break;
+                case OpCode.OP_RETURN:
+                    PopFrame();
+                    Pop();
+                    Push(Null);
+                    break;
             }
+
+            if (curFrame.InstructionPointer != CurrentFrame.InstructionPointer) {
+                continue;
+            }
+            if (CurrentFrame.InstructionPointer >= CurrentFrame.Instructions.Count - 1) {
+                break;
+            }
+            CurrentFrame.InstructionPointer++;
         }
 
         return true;
@@ -325,5 +363,16 @@ public partial class VirtualMachine {
             Null @null => false, 
             _ => true
         };
+    }
+
+    private void PushFrame(Frame frame) {
+        Frames[FrameIndex] = frame;
+        FrameIndex++;
+    }
+
+    private Frame PopFrame() {
+        var frame = CurrentFrame;
+        FrameIndex--;
+        return frame;
     }
 }
