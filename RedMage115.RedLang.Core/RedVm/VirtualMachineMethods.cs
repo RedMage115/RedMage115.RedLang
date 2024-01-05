@@ -141,6 +141,7 @@ public partial class VirtualMachine {
                     break;
                 case OpCode.OP_CALL:
                     Log.Add($"{Definition.Lookup(op)?.Name}");
+                    CurrentFrame.InstructionPointer++;
                     if (Stack[StackPointer-1] is not CompiledFunction compiledFunction) {
                         return false;
                     }

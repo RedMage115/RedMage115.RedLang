@@ -26,7 +26,7 @@ public partial class Definition {
         { OpCode.OP_ARRAY, new Definition("OpArray", [2])},
         { OpCode.OP_HASH, new Definition("OpHash", [2])},
         { OpCode.OP_INDEX, new Definition("OpIndex", [])},
-        { OpCode.OP_CALL, new Definition("OpCall", [])},
+        { OpCode.OP_CALL, new Definition("OpCall", [1])},
         { OpCode.OP_RETURN_VALUE, new Definition("OpReturnValue", [])},
         { OpCode.OP_RETURN, new Definition("OpReturn", [])},
         { OpCode.OP_GET_LOCAL, new Definition("OpGetLocal", [1])},

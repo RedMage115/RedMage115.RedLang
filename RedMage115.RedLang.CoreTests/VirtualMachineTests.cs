@@ -1099,7 +1099,48 @@ public class VirtualMachineTests {
     }
     
     
-    
+    [Fact]
+    private void TestFunctionParams() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                         let globalVar = 100;
+                         let x = fn(a,b,c){ a + b + c };
+                         x(100,100,globalVar);
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            DumpScopes(compiler, vm);
+            DumpLogs(vm);
+            var lastPopped = vm.StackTop();
+            Assert.NotNull(lastPopped);
+            const string expected = "100";
+            _testOutputHelper.WriteLine($"Expected a function of 100, got: {lastPopped.InspectObject()}");
+            Assert.IsType<Integer>(lastPopped);
+            if (lastPopped is Integer val) {
+                _testOutputHelper.WriteLine($"Expected: {expected}, got: {val.InspectObject()}");
+                Assert.Equal(expected, val.InspectObject());
+            }
+
+        }
+        
+    }
     
     
     private Program GetProgram(string input) {
