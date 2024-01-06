@@ -11,7 +11,7 @@ public class Frame {
     public Frame(CompiledFunction function, int basePointer) {
         Function = function;
         BasePointer = basePointer;
-        InstructionPointer = 0;
+        InstructionPointer = -1;
     }
     public Frame(CompiledFunction function, int instructionPointer, int basePointer) {
         Function = function;

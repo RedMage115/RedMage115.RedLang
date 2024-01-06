@@ -22,6 +22,12 @@ public class SymbolTable {
         Store.TryAdd(name, symbol);
         return symbol;
     }
+    
+    public Symbol DefineBuiltin(int index, string name) {
+        var symbol = new Symbol(name, SymbolScope.BUILTIN, index);
+        Store.TryAdd(name, symbol);
+        return symbol;
+    }
 
     public bool Resolve(string name, [MaybeNullWhen(false)]out Symbol symbol) {
         if (Store.TryGetValue(name, out symbol)) {

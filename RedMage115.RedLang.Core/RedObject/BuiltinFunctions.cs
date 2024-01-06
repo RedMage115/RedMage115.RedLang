@@ -1,12 +1,7 @@
-﻿using RedMage115.RedLang.Core.RedObject;
-using Array = RedMage115.RedLang.Core.RedObject.Array;
-using Object = RedMage115.RedLang.Core.RedObject.Object;
-using String = RedMage115.RedLang.Core.RedObject.String;
+﻿namespace RedMage115.RedLang.Core.RedObject;
 
-namespace RedMage115.RedLang.Core.RedEvaluator;
-
-public static partial class Evaluator {
-    private static Object Len(List<Object> args) {
+public static class BuiltinFunctions {
+    public static Object Len(List<Object> args) {
         if (args.Count != 1) {
             return new Error($"wrong number of arguments, expected: 1, got: {args.Count}");
         }
@@ -19,7 +14,7 @@ public static partial class Evaluator {
         };
     }
 
-    private static Object First(List<Object> args) {
+    public static Object First(List<Object> args) {
         if (args.Count != 1) {
             return new Error($"wrong number of arguments, expected: 1, got: {args.Count}");
         }
@@ -39,7 +34,7 @@ public static partial class Evaluator {
         };
     }
     
-    private static Object Last(List<Object> args) {
+    public static Object Last(List<Object> args) {
         if (args.Count != 1) {
             return new Error($"wrong number of arguments, expected: 1, got: {args.Count}");
         }
@@ -59,7 +54,7 @@ public static partial class Evaluator {
         };
     }
     
-    private static Object Tail(List<Object> args) {
+    public static Object Tail(List<Object> args) {
         if (args.Count != 1) {
             return new Error($"wrong number of arguments, expected: 1, got: {args.Count}");
         }
@@ -79,7 +74,7 @@ public static partial class Evaluator {
         };
     }
 
-    private static Object Push(List<Object> args) {
+    public static Object Push(List<Object> args) {
         if (args.Count != 2) {
             return new Error($"wrong number of arguments, expected: 2, got: {args.Count}");
         }
@@ -92,10 +87,10 @@ public static partial class Evaluator {
         };
     }
 
-    private static Object Print(List<Object> args) {
+    public static Object Print(List<Object> args) {
         foreach (var o in args) {
             Console.WriteLine(o.InspectObject());
         }
-        return Null;
+        return new Null();
     }
 }

@@ -15,23 +15,16 @@ public partial class VirtualMachine {
     }
 
     public bool Run() {
-        int ip;
-        List<byte> instructions;
-        byte op;
-        
-        while (true) {
-            var curFrame = CurrentFrame;
-            ip = CurrentFrame.InstructionPointer;
-            instructions = CurrentFrame.Instructions;
-            op = instructions[ip];
+        while (CurrentFrame.InstructionPointer < CurrentFrame.Instructions.Count-1) {
+            CurrentFrame.InstructionPointer++;
+            var ip = CurrentFrame.InstructionPointer;
+            var instructions = CurrentFrame.Instructions;
+            var op = instructions[ip];
             
             switch (op) {
                 case OpCode.OP_CONSTANT:
                     Log.Add($"{Definition.Lookup(op)?.Name}");
-                    var constStart = ip + 1;
-                    var constEnd = ip + 3;
-                    var constByte = instructions[constStart..constEnd];
-                    var constIndex = Definition.ReadUint16(constByte);
+                    var constIndex = Definition.ReadUint16(instructions[(ip+1)..]);
                     CurrentFrame.InstructionPointer += 2;
                     if (!Push(Constants[constIndex])) {
                         return false;
@@ -141,14 +134,9 @@ public partial class VirtualMachine {
                     break;
                 case OpCode.OP_CALL:
                     Log.Add($"{Definition.Lookup(op)?.Name}");
+                    var numberOfCallArgs = Definition.ReadUint8(instructions[(ip + 1)..]);
                     CurrentFrame.InstructionPointer++;
-                    if (Stack[StackPointer-1] is not CompiledFunction compiledFunction) {
-                        return false;
-                    }
-                    var callFrame = new Frame(compiledFunction, StackPointer);
-                    PushFrame(callFrame);
-                    StackPointer = callFrame.BasePointer + compiledFunction.NumberOfLocals;
-                    Log.Add($"Function Locals: {compiledFunction.NumberOfLocals}");
+                    ExecuteCall(numberOfCallArgs); 
                     break;
                 case OpCode.OP_RETURN_VALUE:
                     Log.Add($"{Definition.Lookup(op)?.Name}");
@@ -177,13 +165,16 @@ public partial class VirtualMachine {
                     Log.Add($"Getting Local: {Stack[CurrentFrame.BasePointer + localGetIndex].GetObjectType()} - {Stack[CurrentFrame.BasePointer + localGetIndex].InspectObject()}");
                     Push(Stack[CurrentFrame.BasePointer + localGetIndex]);
                     break;
+                case OpCode.OP_GET_BUILTIN:
+                    Log.Add($"{Definition.Lookup(op)?.Name}");
+                    var builtinGetIndex = Definition.ReadUint8(instructions[(ip + 1)..]);
+                    CurrentFrame.InstructionPointer += 1;
+                    var builtinDefinition = Builtins.BuiltinFunctionList.GetValueAtIndex(builtinGetIndex);
+                    Log.Add($"Found Builtin: {builtinDefinition.InspectObject()}");
+                    Push(builtinDefinition);
+                    break;
             }
-            if (CurrentFrame.InstructionPointer >= CurrentFrame.Instructions.Count - 1) {
-                break;
-            }
-            curFrame.InstructionPointer++;
         }
-
         return true;
     }
 
@@ -192,6 +183,7 @@ public partial class VirtualMachine {
             return false;
         }
         Stack[StackPointer] = obj;
+        Log.Add($"Pushed {obj.InspectObject()} to Stack @ {StackPointer}");
         StackPointer++;
         return true;
     }
@@ -201,6 +193,7 @@ public partial class VirtualMachine {
             return Null;
         }
         var obj = Stack[StackPointer - 1];
+        Log.Add($"Popped {obj.InspectObject()} from Stack @ {StackPointer-1}");
         StackPointer--;
         return obj;
     }
@@ -226,7 +219,7 @@ public partial class VirtualMachine {
                 Push(new Integer(result));
             }
             catch (Exception e) {
-                Console.WriteLine(e);
+                Errors.Add(e.Message);
                 return false;
             }
             return true;
@@ -389,6 +382,37 @@ public partial class VirtualMachine {
             return true;
         }
         
+        return true;
+    }
+
+    private bool ExecuteCall(int numberOfArgs) {
+        var callee = Stack[StackPointer - 1 - numberOfArgs];
+        return callee switch {
+            CompiledFunction compiledFunction => CallFunction(compiledFunction, numberOfArgs),
+            Builtin builtin => CallBuiltin(builtin, numberOfArgs),
+            _ => false
+        };
+    }
+    
+    private bool CallFunction(CompiledFunction callee, int numberOfArgs) {
+        
+        if (numberOfArgs != callee.NumberOfArguments) {
+            Errors.Add($"ERROR: Incorrect number of Args: Expected: {callee.NumberOfArguments}, got: {numberOfArgs}");
+            return false;
+        }
+        var callFrame = new Frame(callee, StackPointer-numberOfArgs);
+        PushFrame(callFrame);
+        StackPointer = callFrame.BasePointer + callee.NumberOfLocals;
+        Log.Add($"Function Args: {numberOfArgs}");
+        Log.Add($"Function Locals: {callee.NumberOfLocals}");
+        return true;
+    }
+    
+    private bool CallBuiltin(Builtin builtin, int numberOfArgs) {
+        var args = Stack[(StackPointer - numberOfArgs)..StackPointer];
+        var result = builtin.Fn(args.ToList());
+        StackPointer = StackPointer - numberOfArgs - 1;
+        Push(result);
         return true;
     }
 

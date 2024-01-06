@@ -144,16 +144,7 @@ public partial class Compiler {
                 if (!SymbolTable.Resolve(identifier.Value, out var identSymbol)) {
                     return false;
                 }
-                switch (identSymbol.Scope) {
-                    case SymbolScope.GLOBAL:
-                        Emit(OpCode.OP_GET_GLOBAL, [identSymbol.Index]);
-                        break;
-                    case SymbolScope.LOCAL:
-                        Emit(OpCode.OP_GET_LOCAL, [identSymbol.Index]);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                LoadSymbol(identSymbol);
                 break;
             case StringLiteral stringLiteral:
                 var strLit = new String(stringLiteral.Value);
@@ -196,21 +187,21 @@ public partial class Compiler {
                 break;
             case FunctionLiteral functionLiteral:
                 EnterScope();
+                foreach (var functionLiteralParameter in functionLiteral.Parameters) {
+                    SymbolTable.Define(functionLiteralParameter.Value);
+                }
                 if (!Compile(functionLiteral.Body)) {
                     return false;
                 }
-
                 if (LastInstructionIs(OpCode.OP_POP)) {
                     ReplaceLastPopWithReturn();
                 }
-
                 if (!LastInstructionIs(OpCode.OP_RETURN_VALUE)) {
                     Emit(OpCode.OP_RETURN, []);
                 }
-
                 var numberOfLocals = SymbolTable.NumDefinitions;
                 var instructions = LeaveScope();
-                var compiledFunction = new CompiledFunction(instructions, numberOfLocals);
+                var compiledFunction = new CompiledFunction(instructions, numberOfLocals, functionLiteral.Parameters.Count);
                 Emit(OpCode.OP_CONSTANT, [AddConstant(compiledFunction)]);
                 break;
             case ReturnStatement returnStatement:
@@ -219,11 +210,16 @@ public partial class Compiler {
                 }
                 Emit(OpCode.OP_RETURN_VALUE, []);
                 break;
-            case CallExpression callExpression:
+            case CallExpression callExpression: 
                 if (!Compile(callExpression.Function)) {
                     return false;
                 }
-                Emit(OpCode.OP_CALL, []);
+                foreach (var callExpressionArgument in callExpression.Arguments) {
+                    if (!Compile(callExpressionArgument)) {
+                        return false;
+                    }
+                }
+                Emit(OpCode.OP_CALL, [callExpression.Arguments.Count]);
                 break;
         }
 
@@ -295,7 +291,10 @@ public partial class Compiler {
     }
 
     private void ReplaceLastPopWithReturn() {
-        if (CurrentScope.LastInstruction is null ) return;
+        if (CurrentScope.LastInstruction is null) {
+            Errors.Add("LAST INSTRUCTION WAS NULL");
+            return;
+        }
         var lastPos = CurrentScope.LastInstruction.Position;
         ReplaceInstruction(lastPos, OpCode.Make(OpCode.OP_RETURN_VALUE, []));
         CurrentScope.LastInstruction.Opcode = OpCode.OP_RETURN_VALUE;
@@ -308,7 +307,21 @@ public partial class Compiler {
         if (SymbolTable.Outer != null) SymbolTable = SymbolTable.Outer;
         return scope.Instructions;
     }
-    
-    
+
+    private void LoadSymbol(Symbol identSymbol) {
+        switch (identSymbol.Scope) {
+            case SymbolScope.GLOBAL:
+                Emit(OpCode.OP_GET_GLOBAL, [identSymbol.Index]);
+                break;
+            case SymbolScope.LOCAL:
+                Emit(OpCode.OP_GET_LOCAL, [identSymbol.Index]);
+                break;
+            case SymbolScope.BUILTIN:
+                Emit(OpCode.OP_GET_BUILTIN, [identSymbol.Index]);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(identSymbol),"identSymbol out of range");
+        }
+    }
     
 }

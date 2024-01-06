@@ -1,4 +1,5 @@
 ﻿using RedMage115.RedLang.Core.RedCode;
+using RedMage115.RedLang.Core.RedObject;
 using Object = RedMage115.RedLang.Core.RedObject.Object;
 
 namespace RedMage115.RedLang.Core.RedCompiler;
@@ -15,12 +16,22 @@ public partial class Compiler {
     public Compiler() {
         Constants = [];
         SymbolTable = new SymbolTable();
+        var x = 0;
+        foreach (var builtin in Builtins.BuiltinFunctionList) {
+            SymbolTable.DefineBuiltin(x, builtin.Key);
+            x++;
+        }
         Scopes.Add(new CompilationScope());
     }
     
     public Compiler(SymbolTable symbolTable) {
         Constants = [];
         SymbolTable = symbolTable;
+        var x = 0;
+        foreach (var builtin in Builtins.BuiltinFunctionList) {
+            SymbolTable.DefineBuiltin(x, builtin.Key);
+            x++;
+        }
         Scopes.Add(new CompilationScope());
     }
 }

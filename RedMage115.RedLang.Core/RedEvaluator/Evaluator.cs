@@ -14,12 +14,12 @@ public static partial class Evaluator {
     private static readonly Boolean False = new(false);
     private static readonly Null Null = new();
     private static Dictionary<string, Builtin> Builtins { get; } = new() {
-        {"len", new Builtin(Len)},
-        {"first", new Builtin(First)},
-        {"last", new Builtin(Last)},
-        {"tail", new Builtin(Tail)},
-        {"push", new Builtin(Push)},
-        {"print", new Builtin(Print)},
+        {"len", new Builtin(BuiltinFunctions.Len)},
+        {"first", new Builtin(BuiltinFunctions.First)},
+        {"last", new Builtin(BuiltinFunctions.Last)},
+        {"tail", new Builtin(BuiltinFunctions.Tail)},
+        {"push", new Builtin(BuiltinFunctions.Push)},
+        {"print", new Builtin(BuiltinFunctions.Print)},
     };
 
 }

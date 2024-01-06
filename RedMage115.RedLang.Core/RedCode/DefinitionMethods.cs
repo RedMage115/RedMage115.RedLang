@@ -31,6 +31,7 @@ public partial class Definition {
         { OpCode.OP_RETURN, new Definition("OpReturn", [])},
         { OpCode.OP_GET_LOCAL, new Definition("OpGetLocal", [1])},
         { OpCode.OP_SET_LOCAL, new Definition("OpSetLocal", [1])},
+        { OpCode.OP_GET_BUILTIN, new Definition("OpGetBuiltin", [1])},
     };
 
     public static Definition? Lookup(byte opCode) {
@@ -60,13 +61,12 @@ public partial class Definition {
     }
 
     public static ushort ReadUint16(List<byte> bytes) {
-        if (bytes.Count != 2) {
-            throw new ArgumentException(null, nameof(bytes));
-        }
-
         var byteArr = new byte[2];
         var x = 0;
         foreach (var b in bytes) {
+            if (x>1) {
+                break;
+            }
             byteArr[x] = b;
             x++;
         }

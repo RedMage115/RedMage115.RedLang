@@ -11,6 +11,7 @@ namespace RedMage115.RedLang.Core.RedVm;
 public partial class VirtualMachine {
 
     public List<string> Log { get; set; } = [];
+    public List<string> Errors { get; set; } = [];
     public List<Object> Constants { get; set; }
 
     public Object[] Stack { get; set; }
@@ -34,16 +35,7 @@ public partial class VirtualMachine {
         Stack = new Object[StackSize];
         Globals = new Object[GlobalsSize];
         StackPointer = 0;
-        Frames[0] = new Frame(new CompiledFunction(instructions, 0),0);
-        FrameIndex = 1;
-    }
-    
-    public VirtualMachine(ByteCode byteCode) {
-        Constants = byteCode.Constants;
-        Stack = new Object[StackSize];
-        Globals = new Object[GlobalsSize];
-        StackPointer = 0;
-        Frames[0] = new Frame(new CompiledFunction([], 0),0);
+        Frames[0] = new Frame(new CompiledFunction(instructions, 0, 0),0);
         FrameIndex = 1;
     }
     
@@ -52,7 +44,7 @@ public partial class VirtualMachine {
         Stack = new Object[StackSize];
         Globals = globals;
         StackPointer = 0;
-        Frames[0] = new Frame(new CompiledFunction([], 0),0);
+        Frames[0] = new Frame(new CompiledFunction(byteCode.Instructions, 0,0),0);
         FrameIndex = 1;
     }
     

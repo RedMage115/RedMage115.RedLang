@@ -142,6 +142,14 @@ public class CompilerTests {
             foreach (var constant in actual.Constants) {
                 _testOutputHelper.WriteLine(constant.InspectObject());
             }
+            _testOutputHelper.WriteLine("Dumping Errors");
+            foreach (var err in compiler.Errors) {
+                _testOutputHelper.WriteLine(err);
+            }
+            _testOutputHelper.WriteLine("Dumping Symbols");
+            foreach (var symbolPair in compiler.SymbolTable.Store) {
+                _testOutputHelper.WriteLine($"{symbolPair.Key} - {symbolPair.Value.Name} - {symbolPair.Value.Scope} - {symbolPair.Value.Index}");
+            }
         }
         
     }
@@ -227,7 +235,7 @@ public class CompilerTests {
         var tests = new List<TestCase>() {
             new TestCase("""
                             let x = fn(){5+10};
-                            x(); 
+                            x() 
                          """,
                 [],
                 [
@@ -239,12 +247,6 @@ public class CompilerTests {
             var compiler = new Compiler();
             compiler.Compile(program);
             var actual = compiler.ByteCode();
-            _testOutputHelper.WriteLine($"Expected Compiled Function, got: {actual.Constants.Last().GetObjectType()}");
-            Assert.IsType<CompiledFunction>(actual.Constants.Last());
-            _testOutputHelper.WriteLine($"Expected last instruction: {OpCode.OP_CALL}, got: {actual.Instructions[^2]}");
-            Assert.Equal(OpCode.OP_CALL, actual.Instructions[^2]);
-            Assert.NotEmpty(actual.Instructions);
-            Assert.NotEmpty(actual.Constants);
             _testOutputHelper.WriteLine("Dumping Instructions");
             foreach (var instruction in actual.Instructions) {
                 var def = Definition.Lookup(instruction);
@@ -252,6 +254,12 @@ public class CompilerTests {
                     _testOutputHelper.WriteLine($"{def.Name} - {instruction}");
                 }
             }
+            _testOutputHelper.WriteLine($"Expected Compiled Function, got: {actual.Constants.Last().GetObjectType()}");
+            _testOutputHelper.WriteLine($"Expected last instruction: {OpCode.OP_CALL}, got: {actual.Instructions[^2]}");
+            Assert.Equal(OpCode.OP_CALL, actual.Instructions[^3]);
+            Assert.NotEmpty(actual.Instructions);
+            Assert.NotEmpty(actual.Constants);
+            Assert.Equal(OpCode.OP_POP,actual.Instructions.Last());
 
             _testOutputHelper.WriteLine("Dumping Constants");
             foreach (var constant in actual.Constants) {
@@ -297,6 +305,47 @@ public class CompilerTests {
             foreach (var constant in actual.Constants) {
                 _testOutputHelper.WriteLine(constant.InspectObject());
             }
+        }
+        
+    }
+    
+    [Fact]
+    private void TestFunctionCallArgs() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                            let manyArg = fn(a, b, c) { a; b; c };
+                            manyArg(24, 25, 26);
+                         """,
+                [],
+                [
+                ])
+        };
+
+        foreach (var testCase in tests) {
+            var program = new Parser(new Lexer(testCase.Input)).ParseProgram();
+            var compiler = new Compiler();
+            compiler.Compile(program);
+            var actual = compiler.ByteCode();
+            _testOutputHelper.WriteLine("Dumping Instructions");
+            foreach (var instruction in actual.Instructions) {
+                var def = Definition.Lookup(instruction);
+                if (def is not null) {
+                    _testOutputHelper.WriteLine($"{def.Name} - {instruction}");
+                }
+            }
+            _testOutputHelper.WriteLine("Dumping Constants");
+            foreach (var constant in actual.Constants) {
+                _testOutputHelper.WriteLine(constant.InspectObject());
+            }
+            _testOutputHelper.WriteLine("Dumping Errors");
+            foreach (var err in compiler.Errors) {
+                _testOutputHelper.WriteLine(err);
+            }
+            _testOutputHelper.WriteLine("Dumping Symbols");
+            foreach (var symbolPair in compiler.SymbolTable.Store) {
+                _testOutputHelper.WriteLine($"{symbolPair.Key} - {symbolPair.Value.Name} - {symbolPair.Value.Scope} - {symbolPair.Value.Index}");
+            }
+            Assert.Equal("26", actual.Constants.Last().InspectObject());
         }
         
     }

@@ -1,6 +1,7 @@
 ﻿using RedMage115.RedLang.Core.RedCompiler;
 using RedMage115.RedLang.Core.RedEvaluator;
 using RedMage115.RedLang.Core.RedLexer;
+using RedMage115.RedLang.Core.RedObject;
 using RedMage115.RedLang.Core.RedParser;
 using RedMage115.RedLang.Core.RedToken;
 using RedMage115.RedLang.Core.RedVm;
@@ -123,10 +124,34 @@ public static class Repl {
                 var byteCode = compiler.ByteCode();
                 var vm = new VirtualMachine(byteCode, globals);
                 vm.Run();
-                var top = vm.GetLastPopped();
-                Console.WriteLine(top is null
-                    ? "NULL"
-                    : top.InspectObject());
+                var returnVal = vm.GetLastPopped();
+                if (vm.Errors.Count > 0) {
+                    Console.WriteLine("ERRORS:");
+                }
+                foreach (var vmError in vm.Errors) {
+                    Console.WriteLine(vmError);
+                }
+                if (vm.Log.Count > 0) {
+                    Console.WriteLine("LOG:");
+                }
+                foreach (var vmLog in vm.Log) {
+                    Console.WriteLine(vmLog);
+                }
+                if (returnVal is null) {
+                    returnVal = new Null();
+                }
+
+                Console.WriteLine("Dumping Stack");
+                foreach (var s in vm.Stack) {
+                    if (s is null) {
+                        break;
+                    }
+                    Console.WriteLine(s.InspectObject());
+                }
+                if (vm.Errors.Count > 0 || vm.Log.Count > 0) {
+                    Console.WriteLine("==========");
+                }
+                Console.WriteLine(returnVal.InspectObject());
                 symbolTable = compiler.SymbolTable;
                 globals = vm.Globals;
             }
