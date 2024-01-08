@@ -3,18 +3,18 @@
 namespace RedMage115.RedLang.Core.RedVm;
 
 public class Frame {
-    public CompiledFunction Function { get; set; }
+    public Closure Closure { get; set; }
     public int InstructionPointer { get; set; }
     public int BasePointer { get; set; }
-    public List<byte> Instructions => Function.Instructions;
+    public List<byte> Instructions => Closure.Function.Instructions;
 
-    public Frame(CompiledFunction function, int basePointer) {
-        Function = function;
+    public Frame(Closure closure, int basePointer) {
+        Closure = closure;
         BasePointer = basePointer;
         InstructionPointer = -1;
     }
-    public Frame(CompiledFunction function, int instructionPointer, int basePointer) {
-        Function = function;
+    public Frame(Closure closure, int instructionPointer, int basePointer) {
+        Closure = closure;
         InstructionPointer = instructionPointer;
         BasePointer = basePointer;
     }

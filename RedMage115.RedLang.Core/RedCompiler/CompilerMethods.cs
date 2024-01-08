@@ -125,10 +125,10 @@ public partial class Compiler {
                 if (letStatement.Value is null) {
                     return false;
                 }
+                var letSymbol = SymbolTable.Define(letStatement.Name.Value);
                 if (!Compile(letStatement.Value)) {
                     return false;
                 }
-                var letSymbol = SymbolTable.Define(letStatement.Name.Value);
                 switch (letSymbol.Scope) {
                     case SymbolScope.GLOBAL:
                         Emit(OpCode.OP_SET_GLOBAL, [letSymbol.Index]);
@@ -199,10 +199,12 @@ public partial class Compiler {
                 if (!LastInstructionIs(OpCode.OP_RETURN_VALUE)) {
                     Emit(OpCode.OP_RETURN, []);
                 }
+                var functionFreeSymbols = SymbolTable.FreeSymbols;
                 var numberOfLocals = SymbolTable.NumDefinitions;
                 var instructions = LeaveScope();
                 var compiledFunction = new CompiledFunction(instructions, numberOfLocals, functionLiteral.Parameters.Count);
-                Emit(OpCode.OP_CONSTANT, [AddConstant(compiledFunction)]);
+                var fnIndex = AddConstant(compiledFunction);
+                Emit(OpCode.OP_CLOSURE, [fnIndex, functionFreeSymbols.Count]);
                 break;
             case ReturnStatement returnStatement:
                 if (returnStatement.ReturnValue != null && !Compile(returnStatement.ReturnValue)) {
@@ -318,6 +320,9 @@ public partial class Compiler {
                 break;
             case SymbolScope.BUILTIN:
                 Emit(OpCode.OP_GET_BUILTIN, [identSymbol.Index]);
+                break;
+            case SymbolScope.FREE:
+                Emit(OpCode.OP_GET_FREE, [identSymbol.Index]);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(identSymbol),"identSymbol out of range");

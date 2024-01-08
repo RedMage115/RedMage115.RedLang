@@ -35,7 +35,9 @@ public partial class VirtualMachine {
         Stack = new Object[StackSize];
         Globals = new Object[GlobalsSize];
         StackPointer = 0;
-        Frames[0] = new Frame(new CompiledFunction(instructions, 0, 0),0);
+        var cmpFunction = new CompiledFunction(instructions, 0, 0);
+        var mainClosure = new Closure(cmpFunction, []);
+        Frames[0] = new Frame(mainClosure,0);
         FrameIndex = 1;
     }
     
@@ -44,7 +46,9 @@ public partial class VirtualMachine {
         Stack = new Object[StackSize];
         Globals = globals;
         StackPointer = 0;
-        Frames[0] = new Frame(new CompiledFunction(byteCode.Instructions, 0,0),0);
+        var cmpFunction = new CompiledFunction(byteCode.Instructions, 0, 0);
+        var mainClosure = new Closure(cmpFunction, []);
+        Frames[0] = new Frame(mainClosure,0);
         FrameIndex = 1;
     }
     

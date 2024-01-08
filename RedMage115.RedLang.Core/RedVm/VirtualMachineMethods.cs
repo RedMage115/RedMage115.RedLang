@@ -173,6 +173,18 @@ public partial class VirtualMachine {
                     Log.Add($"Found Builtin: {builtinDefinition.InspectObject()}");
                     Push(builtinDefinition);
                     break;
+                case OpCode.OP_CLOSURE:
+                    var closureConstIndex = Definition.ReadUint16(instructions[(ip + 1)..]);
+                    var freeCount = Definition.ReadUint8(instructions[(ip + 3)..]);
+                    CurrentFrame.InstructionPointer += 3;
+                    PushClosure(closureConstIndex, freeCount);
+                    break;
+                case OpCode.OP_GET_FREE:
+                    var getFreeIndex = Definition.ReadUint8(instructions[(ip + 1)..]);
+                    CurrentFrame.InstructionPointer++;
+                    var currentClosure = CurrentFrame.Closure;
+                    Push(currentClosure.Free[getFreeIndex]);
+                    break;
             }
         }
         return true;
@@ -388,23 +400,23 @@ public partial class VirtualMachine {
     private bool ExecuteCall(int numberOfArgs) {
         var callee = Stack[StackPointer - 1 - numberOfArgs];
         return callee switch {
-            CompiledFunction compiledFunction => CallFunction(compiledFunction, numberOfArgs),
+            Closure closureFunction => CallClosure(closureFunction, numberOfArgs),
             Builtin builtin => CallBuiltin(builtin, numberOfArgs),
             _ => false
         };
     }
     
-    private bool CallFunction(CompiledFunction callee, int numberOfArgs) {
+    private bool CallClosure(Closure callee, int numberOfArgs) {
         
-        if (numberOfArgs != callee.NumberOfArguments) {
-            Errors.Add($"ERROR: Incorrect number of Args: Expected: {callee.NumberOfArguments}, got: {numberOfArgs}");
+        if (numberOfArgs != callee.Function.NumberOfArguments) {
+            Errors.Add($"ERROR: Incorrect number of Args: Expected: {callee.Function.NumberOfArguments}, got: {numberOfArgs}");
             return false;
         }
         var callFrame = new Frame(callee, StackPointer-numberOfArgs);
         PushFrame(callFrame);
-        StackPointer = callFrame.BasePointer + callee.NumberOfLocals;
+        StackPointer = callFrame.BasePointer + callee.Function.NumberOfLocals;
         Log.Add($"Function Args: {numberOfArgs}");
-        Log.Add($"Function Locals: {callee.NumberOfLocals}");
+        Log.Add($"Function Locals: {callee.Function.NumberOfLocals}");
         return true;
     }
     
@@ -414,6 +426,21 @@ public partial class VirtualMachine {
         StackPointer = StackPointer - numberOfArgs - 1;
         Push(result);
         return true;
+    }
+
+    private bool PushClosure(int constIndex, int freeCount) {
+        var constant = Constants[constIndex];
+        if (constant is not CompiledFunction compiledFunction) {
+            return false;
+        }
+
+        var free = new Object[freeCount];
+        for (var i = 0; i < freeCount; i++) {
+            free[i] = Stack[StackPointer-freeCount+i];
+        }
+        StackPointer -= freeCount;
+        var closure = new Closure(compiledFunction, free.ToList());
+        return Push(closure);
     }
 
     private bool IsTrue(Object obj) {

@@ -3,5 +3,6 @@
 public enum SymbolScope {
     GLOBAL,
     LOCAL,
-    BUILTIN
+    BUILTIN,
+    FREE
 }

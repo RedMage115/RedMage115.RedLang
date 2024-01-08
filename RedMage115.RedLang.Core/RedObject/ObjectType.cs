@@ -11,5 +11,6 @@ public enum ObjectType {
     BUILTIN,
     ARRAY,
     HASH,
-    COMPILED_FUNCTION
+    COMPILED_FUNCTION,
+    CLOSURE
 }

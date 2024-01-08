@@ -31,6 +31,9 @@ public static class OpCode {
     public const byte OP_GET_LOCAL = 25;
     public const byte OP_SET_LOCAL = 26;
     public const byte OP_GET_BUILTIN = 27;
+    public const byte OP_CLOSURE = 28;
+    public const byte OP_GET_FREE = 29;
+    public const byte OP_CURRENT_CLOSURE = 30;
 
 
     public static string OpCodeToString(List<byte> opcode) {

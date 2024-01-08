@@ -32,6 +32,9 @@ public partial class Definition {
         { OpCode.OP_GET_LOCAL, new Definition("OpGetLocal", [1])},
         { OpCode.OP_SET_LOCAL, new Definition("OpSetLocal", [1])},
         { OpCode.OP_GET_BUILTIN, new Definition("OpGetBuiltin", [1])},
+        { OpCode.OP_CLOSURE, new Definition("OpClosure", [2,1])},
+        { OpCode.OP_GET_FREE, new Definition("OpGetFree", [1])},
+        { OpCode.OP_CURRENT_CLOSURE, new Definition("OpCurrentClosure", [])},
     };
 
     public static Definition? Lookup(byte opCode) {

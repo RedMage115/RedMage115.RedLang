@@ -1383,6 +1383,216 @@ public class VirtualMachineTests {
         
     }
     
+    [Fact]
+    private void TestClosure() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                            let newClosure = fn(a) {
+                                fn() { a; };
+                            };
+                            let closure = newClosure(99);
+                            closure();
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            DumpScopes(compiler, vm);
+            DumpLogs(vm);
+
+            var top = vm.GetLastPopped();
+            Assert.Equal("99",top?.InspectObject());
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestClosureBig() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                            let newAdder = fn(a, b) {
+                                fn(c) { a + b + c };
+                            };
+                            let adder = newAdder(1, 2);
+                            adder(8);
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            DumpScopes(compiler, vm);
+            DumpLogs(vm);
+
+            var top = vm.GetLastPopped();
+            Assert.Equal("11",top?.InspectObject());
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestClosureRecursive() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                         let countDown = fn(x) {
+                             if (x == 0) {
+                                return 0;
+                             } else {
+                                countDown(x - 1);
+                             }
+                         };
+                         countDown(1);
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            DumpScopes(compiler, vm);
+            DumpLogs(vm);
+
+            var top = vm.GetLastPopped();
+            Assert.Equal("0",top?.InspectObject());
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestClosureRecursive2() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                         let countDown = fn(x) {
+                         if (x == 0) {
+                         return 0;
+                         } else {
+                         countDown(x - 1);
+                         }
+                         };
+                         let wrapper = fn() {
+                         countDown(1);
+                         };
+                         wrapper();
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            DumpScopes(compiler, vm);
+            DumpLogs(vm);
+
+            var top = vm.GetLastPopped();
+            Assert.Equal("0",top?.InspectObject());
+
+        }
+        
+    }
+    
+    [Fact]
+    private void TestClosureRecursive3() {
+        var tests = new List<TestCase>() {
+            new TestCase("""
+                         let wrapper = fn() {
+                         let countDown = fn(x) {
+                         if (x == 0) {
+                         return 0;
+                         } else {
+                         countDown(x - 1);
+                         }
+                         };
+                         countDown(1);
+                         };
+                         wrapper();
+
+                         """, 
+                new List<Object>(){},
+                new List<List<byte>>() {
+                }
+            )
+        };
+
+        foreach (var testCase in tests) {
+            var compiler = new Compiler();
+            var program = GetProgram(testCase.Input);
+            var result = compiler.Compile(program);
+            Assert.True(result);
+            var byteCode = compiler.ByteCode();
+            var vm = new VirtualMachine(byteCode.Constants, byteCode.Instructions);
+            vm.Run();
+            foreach (var compilerError in compiler.Errors) {
+                _testOutputHelper.WriteLine(compilerError);
+            }
+
+            DumpStack(vm);
+            DumpScopes(compiler, vm);
+            DumpLogs(vm);
+
+            var top = vm.GetLastPopped();
+            Assert.Equal("0",top?.InspectObject());
+
+        }
+        
+    }
     
     private Program GetProgram(string input) {
         var lexer = new Lexer(input);
@@ -1414,7 +1624,7 @@ public class VirtualMachineTests {
             if (frame == null!) {
                 break;
             }
-            _testOutputHelper.WriteLine($"{frame.Function.InspectObject()} - {frame.Instructions.Aggregate("", (s, b) => s+=b.ToString())} - {frame.InstructionPointer}");
+            _testOutputHelper.WriteLine($"{frame.Closure.Function.InspectObject()} - {frame.Instructions.Aggregate("", (s, b) => s+=b.ToString())} - {frame.InstructionPointer}");
         }
     }
 
